@@ -1,0 +1,26 @@
+# etc daemon
+[Unit]
+Description=etcd member
+After=network-online.target
+Wants=network-online.target
+[Service]
+ExecStartPre=mkdir -p /var/lib/etcd
+ExecStartPre=-/bin/podman kill etcd
+ExecStartPre=-/bin/podman rm etcd
+ExecStartPre=-/bin/podman pull quay.io/coreos/etcd
+ExecStart=/bin/podman run --name etcd \
+  -p 2379:2379 -p 2380:2380 \
+  --volume /var/lib/etcd:/etcd-data:z \
+  --net=host quay.io/coreos/etcd:{{ container.tag | default('latest') }} \
+  /usr/local/bin/etcd --data-dir /etcd-data \
+  --name {{ inventory_hostname }} \
+  --initial-advertise-peer-urls http://{{ inventory_hostname }}:2380 \
+  --listen-peer-urls http://0.0.0.0:2380 \
+  --advertise-client-urls http://{{ inventory_hostname }}:2379 \
+  --listen-client-urls http://0.0.0.0:2379 \
+  --initial-cluster {% for  i in ansible_play_batch%}{{ i }}=http://{{ i }}:2380{% if not loop.last%},{% endif %}{% endfor %} \
+  --initial-cluster-state new \
+  --initial-cluster-token {{ cluster_token | default('GRABRANRAGRNGARGED') }} 
+ExecStop=/bin/podman stop etcd
+[Install]
+WantedBy=multi-user.target

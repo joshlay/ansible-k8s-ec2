@@ -1,0 +1,18 @@
+- hosts: ec2_k8s
+  gather_facts: false
+  tasks:
+    - include_role:
+        name: ec2_bootstrap
+      tags: ['always']
+    - include_role:
+        name: cluster_common
+      tags: ['common']
+    - include_role:
+        name: etcd
+      tags: ['etcd']
+    - include_role:
+        name: elb_creator
+      tags: ['elb']
+    - include_role:
+        name: kube_init
+     

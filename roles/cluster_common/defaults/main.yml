@@ -1,0 +1,10 @@
+---
+role_packages:
+  - kubelet
+  - kubeadm
+  - kubectl
+  - containerd.io
+  - device-mapper-persistent-data
+  - lvm2
+  - docker-ce
+  - docker-ce-cli

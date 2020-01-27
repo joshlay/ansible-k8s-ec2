@@ -1,0 +1,42 @@
+- name: selinux in permissive, for now
+  become: true
+  selinux:
+    policy: targeted
+    state: permissive
+  register: selinux_state
+- reboot:
+  become: true
+  when: ( selinux_state.changed )
+- name: load the bridge and overlay  modules
+  become: true
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - br_netfilter
+    - overlay
+- name: on boot too
+  become: true
+  lineinfile:
+    line: "{{ item }}"
+    path: /etc/modules-load.d/container_host.conf
+    create: yes
+  with_items:
+    - br_netfilter
+    - overlay
+- name: adjust sysctl parameters 
+  become: true
+  sysctl:
+    name: "{{ item }}"
+    value: "1"
+    reload: yes
+    sysctl_file: /etc/sysctl.d/kube_recs.conf
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+    - net.ipv4.ip_forward
+- name: configure hostfile
+  become: true
+  template:
+    src: templates/hostfile.j2
+    dest: /etc/hosts

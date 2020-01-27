@@ -1,0 +1,23 @@
+---
+- include: os_tune.yml
+- include: repo_setup.yml
+- name: install packages
+  become: true
+  dnf:
+    name: "{{ role_packages }}"
+    state: present
+- name: turn up services
+  become: true
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items: 
+    - kubelet
+    - docker
+- name: prep image pull
+  become: true
+  shell: kubeadm config images pull
+  register: config_images_pull
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/
+

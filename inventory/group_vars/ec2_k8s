@@ -1,0 +1,13 @@
+---
+instance_type: t3.small
+av_zone: us-west-2a
+subnet_id: subnet-b86d64da
+# fedora 31 vanilla
+image_id: ami-051d77f438f689555
+# fedora 31 coreos
+# image_id: ami-0424461aed969d751
+ssh_key:
+  aws_label: aws_id_rsa
+  local_path: ~/.ssh/aws_id_rsa
+region: us-west-2
+interpreter: /usr/bin/python3

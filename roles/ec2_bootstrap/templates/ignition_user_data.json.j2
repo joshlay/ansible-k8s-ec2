@@ -1,0 +1,36 @@
+{
+  "ignition": { "version": "2.3.0" },
+  "storage": {
+    "files": [
+      { "filesystem": "root",
+        "path": "/etc/hostname",
+        "mode": 420,
+        "contents": "data:,{{ inventory_hostname }}"
+      }
+      ]},
+  "systemd": {
+    "units": [
+      { "name": "sshd.service",
+        "enabled": true,
+        "contents": "{{ '\\n'.join(lookup('template', 'templates/sshd.service').split('\n')) }}"
+      },
+      {% for container in containers %}
+      { "name": "{{ container.name }}.service",
+        "enabled": true,
+        "contents": "{{ '\\n'.join(lookup('template', 'templates/%s.service.j2' % container.name ).split('\n')) }}"
+      }
+      {% endfor %}
+
+     ]
+  },
+  "passwd": {
+    "users": [
+      {
+        "name": "valentine",
+        "groups": ["wheel" ],
+        "sshAuthorizedKeys": [
+          "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCubn3cK1NsOS448/IxSHxMI3/2bleerz/GxR/qA/fn+9R6V6wuhRP+MH/WHb3xW+hT67yfjCG5aKrG8HAeeHYpewVW/NR8OGq/JUNzRr1apRbpe0dxHrUu/rqzF5KGLCbKkt5UfJDWlx3aXCwMU9IUSgK87me4bm9QbnKNZ22LxZNCqApqF5bwXa0Ufs3pGxU7CGcvNk9v0shss86x6bn0BltyvlguZ5SLqAWQWjJlXaRmtBoYVCUWhj2XtVgqB4pIyM463IjFQ9ifHAwRMankQI4Z7nopfZjnuq/9lwd+zMfonsed4v2T5lMDU2ar6hLV+JETgidyjF2y8kGHvv8T" ]
+      }
+    ]
+  }
+}

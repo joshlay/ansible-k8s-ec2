@@ -1,0 +1,24 @@
+- set_fact:
+    instance_list: "{{ instance_list | default([]) + [hostvars[item]['instance_id']] }}"
+  with_items: "{{ ansible_play_batch }}"
+- debug: var=instance_list
+- name: create elb
+  delegate_to: localhost
+  run_once: true
+  ec2_elb_lb:
+    instance_ids: "{{ instance_list }}"
+    name: "{{ subnet_id }}-k8s-vip"
+    profile: personal
+    state: present
+    region: "{{ region }}"
+    subnets: 
+      - "{{ subnet_id }}"
+    scheme: internal
+    listeners:
+      - protocol: tcp
+        load_balancer_port: 6443
+        instance_port: 6443
+  register: kube_vip_raw
+- debug: var=kube_vip_raw
+- set_fact:
+    kube_vip: "{{ kube_vip_raw.elb.dns_name }}"

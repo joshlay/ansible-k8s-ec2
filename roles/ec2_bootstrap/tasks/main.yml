@@ -1,0 +1,39 @@
+- debug: var=user_data
+- name: create ec2 instances
+  delegate_to: localhost
+  ec2_instance: 
+    state: "{{ state | default('present') }}"
+    profile: personal
+    image_id: "{{ image_id }}"
+    instance_type: "{{ instance_type }}"
+    key_name: "{{ ssh_key.aws_label }}"
+    name: "{{ inventory_hostname }}"
+    region: "{{ region }}"
+    user_data: |
+      {{ user_data }}
+    tags:
+      testing: True
+    vpc_subnet_id: "{{ subnet_id }}"
+  register: instances
+- debug: 
+    msg: "{{ inventory_hostname }} mapped to instance {{ item.instance_id }}"
+  with_items: "{{ instances.instances }}"
+- block:
+    - debug: var=instances
+    - name: purge run, nothing else to do
+      fail:
+      when: ( state == "absent" )
+  when: ( state is defined )
+- set_fact:
+    ansible_host: "{{ item.private_ip_address }}"
+    private_ip: "{{ item.private_ip_address }}"
+    instance_id: "{{ item.instance_id }}"
+    ansible_user: fedora
+    ansible_ssh_private_key_file:  "{{ ssh_key.local_path }}"
+    ansible_ssh_common_args: "{{ ansible_ssh_common_args + '-o StrictHostKeyChecking=No' }}"
+    ansible_python_interpreter: "{{ interpreter }}"
+  with_items: "{{ instances.instances }}"
+  when: ( item.tags.Name == inventory_hostname ) 
+- setup:
+  become: true
+
