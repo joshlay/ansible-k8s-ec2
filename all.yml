@@ -8,11 +8,11 @@
         name: cluster_common
       tags: ['common']
     - include_role:
-        name: etcd
-      tags: ['etcd']
-    - include_role:
         name: elb_creator
       tags: ['elb']
+    - include_role:
+        name: etcd
+      tags: ['etcd']
     - include_role:
         name: kube_init
      
