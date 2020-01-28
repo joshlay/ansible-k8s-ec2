@@ -1,0 +1,74 @@
+---
+- name: create dropin service dir for kubelet
+  become: true
+  file:
+    path: /etc/systemd/system/kubelet.service.d
+    state: directory
+- name: configure kubelet service manager for etcd
+  become: true
+  template:
+    src: kube_etc_service_manager.service.j2
+    dest: /etc/systemd/system/kubelet.service.d/20-etc-service-manager.conf
+  register: kube_svc_init
+- name: reload systemd
+  become: true
+  systemd:
+    name: kubelet
+    state: "{{ 're' if kube_svc_init.changed else '' }}started"
+    daemon-reload: "{{ 'yes' if kube_svc_init.changed else omit }}"
+- name: set initial cluster string
+  set_fact:
+    initial_cluster: "{{ initial_cluster | default('') + '%s=https://%s:2380' % ( item, item ) }},"
+  with_items: "{{ ansible_play_batch }}"
+- name: set up CA
+  run_once: true
+  become: true
+  block:
+    - name: ship etcd cluster config
+      template:
+        src: kubeadm_etcd_cluster_resource.yaml.j2
+        dest: "/tmp/{{ item }}.etcd.yaml"
+      with_items: "{{ ansible_play_batch }}"
+    - name: prep the dir
+      become: true
+      file:
+        path: "/etc/kubernetes/pki-{{ inventory_hostname }}/pki/etcd"
+        state: directory
+    - name: symlink pki directory to host dir
+      become: true
+      file:
+        src: "/etc/kubernetes/pki-{{ inventory_hostname }}/pki"
+        path: /etc/kubernetes/pki
+        force: yes
+        state: link
+    - name: create etcd cacerts
+      become: true
+      shell: kubeadm init phase certs etcd-ca creates=/etc/kubernetes/pki/etcd/ca.crt
+- name: issue certs
+  run_once: true
+  include_tasks: etcd_cert_issue.yml
+  loop: "{{ ansible_play_batch }}"
+  loop_control:
+    loop_var: target_host
+- debug: var=role_certs
+- name: prep cert dir
+  become: true
+  file:
+    name: /etc/kubernetes/pki/etcd
+    state: directory
+    recurse: yes
+- name: deploy certs
+  become: true
+  copy:
+    content: "{{ item.value }}"
+    dest: "{{ item.key }}"
+  loop: "{{ role_certs|dict2items }}"
+- name: ship etcd cluster config
+  template:
+    src: kubeadm_etcd_cluster_resource.yaml.j2
+    dest: "kubeadmcfg.yaml"
+- name: init pod manifests
+  become: true
+  shell: "kubeadm init phase etcd local --config=/home/{{ ansible_user }}/kubeadmcfg.yaml"
+  register: etcd_init
+- debug: var=etcd_init

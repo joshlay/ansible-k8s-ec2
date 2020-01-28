@@ -1,4 +1,4 @@
-- hosts: ec2_k8s
+- hosts: ec2-k8s
   gather_facts: false
   tasks:
     - include_role:
