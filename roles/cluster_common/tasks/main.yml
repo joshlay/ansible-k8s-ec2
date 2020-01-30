@@ -6,11 +6,38 @@
   dnf:
     name: "{{ role_packages }}"
     state: present
+- name: create docker service dropin dir
+  become: true
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+- name: override docker service exec
+  become: true
+  copy:
+    dest: /etc/systemd/system/docker.service.d/10_EnvironmentFile.conf
+    content: |
+        [Service]
+        EnvironmentFile=/etc/sysconfig/docker
+        ExecStart=
+        ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock $DOCKERD_OPTS
+  register: docker_systemd
+- name: set docker options
+  become: true
+  copy:
+    dest: /etc/sysconfig/docker
+    content: 'DOCKERD_OPTS="{% for option in docker_daemon_options %} {{ option }} {% endfor %}"'
+  register: docker_opts
+- name: reload systemd
+  become: true
+  systemd:
+    daemon-reload: yes
+  when: ( docker_systemd.changed )
+
 - name: turn up services
   become: true
   service:
     name: "{{ item }}"
-    state: started
+    state: "{{ 're' if ( docker_opts.changed and item == 'docker' ) else '' }}started"
     enabled: yes
   with_items: 
     - kubelet

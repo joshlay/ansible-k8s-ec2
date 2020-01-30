@@ -1,0 +1,18 @@
+---
+- name: get env from grub config
+  shell: "source /etc/default/grub; echo $GRUB_CMDLINE_LINUX"
+  register: boot_args
+  changed_when: false
+- name: enforce systemd.unified_cgroup_hierarchy=0
+  become: true
+  lineinfile:
+    regexp: "GRUB_CMDLINE_LINUX=.*"
+    line: 'GRUB_CMDLINE_LINUX="{{ boot_args.stdout }} systemd.unified_cgroup_hierarchy=0"'
+    path: /etc/default/grub
+  when: ( 'systemd.unified_cgroup_hierarchy=0' not in boot_args.stdout )
+  register: boot_args_change
+- name: regenerate grub config
+  become: true
+  shell: grub2-mkconfig -o /etc/grub2.cfg
+  when: ( boot_args_change.changed )
+  register: grub_args

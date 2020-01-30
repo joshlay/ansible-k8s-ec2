@@ -20,6 +20,12 @@
   set_fact:
     initial_cluster: "{{ initial_cluster | default('') + '%s=https://%s:2380' % ( item, item ) }},"
   with_items: "{{ ansible_play_batch }}"
+- name: ship etcd cluster config
+  template:
+    src: kubeadm_etcd_cluster_resource.yaml.j2
+    dest: "kubeadmcfg.yaml"
+  vars: 
+    target_host: "{{ inventory_hostname }}"
 - name: set up CA
   run_once: true
   become: true
@@ -27,8 +33,10 @@
     - name: ship etcd cluster config
       template:
         src: kubeadm_etcd_cluster_resource.yaml.j2
-        dest: "/tmp/{{ item }}.etcd.yaml"
-      with_items: "{{ ansible_play_batch }}"
+        dest: "/tmp/{{ target_host }}.etcd.yaml"
+      loop: "{{ ansible_play_batch }}"
+      loop_control:
+        loop_var: target_host
     - name: prep the dir
       become: true
       file:
@@ -44,31 +52,57 @@
     - name: create etcd cacerts
       become: true
       shell: kubeadm init phase certs etcd-ca creates=/etc/kubernetes/pki/etcd/ca.crt
-- name: issue certs
-  run_once: true
-  include_tasks: etcd_cert_issue.yml
-  loop: "{{ ansible_play_batch }}"
-  loop_control:
-    loop_var: target_host
-- debug: var=role_certs
+- name: purge certs
+  become: true
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ cert_files }}"
+  when: ( inventory_hostname in purge_certs | default([]) )
 - name: prep cert dir
   become: true
   file:
     name: /etc/kubernetes/pki/etcd
     state: directory
     recurse: yes
-- name: deploy certs
-  become: true
-  copy:
-    content: "{{ item.value }}"
-    dest: "{{ item.key }}"
-  loop: "{{ role_certs|dict2items }}"
-- name: ship etcd cluster config
-  template:
-    src: kubeadm_etcd_cluster_resource.yaml.j2
-    dest: "kubeadmcfg.yaml"
+- name: check for cert files
+  stat:
+    path: "{{ item }}"
+    get_checksum: no
+    get_mime: no
+  register: cert_check
+  with_items: "{{ cert_files  }}"
+- set_fact:
+    files_needed: "{{ files_needed | default([]) + [ item.item ] }}"
+  with_items: "{{ cert_check.results }}"
+  when: ( not item['stat']['exists'] )
+- debug: var=files_needed
+- name: issue certs
+  run_once: true
+  include_tasks: etcd_cert_issue.yml
+  loop: "{{ ansible_play_batch }}"
+  loop_control:
+    loop_var: target_host
+  when: ( hostvars.get(target_host).get('files_needed') is defined )
 - name: init pod manifests
   become: true
   shell: "kubeadm init phase etcd local --config=/home/{{ ansible_user }}/kubeadmcfg.yaml"
   register: etcd_init
-- debug: var=etcd_init
+- include_tasks: check_cluster_health.yml
+- name: retrieve etcd client cert
+  become: true
+  slurp:
+    src: "{{ item }}"
+  with_items: 
+    - /etc/kubernetes/pki/etcd/ca.crt
+    - /etc/kubernetes/pki/apiserver-etcd-client.crt
+    - /etc/kubernetes/pki/apiserver-etcd-client.key
+  run_once: true
+  register: etcd_client_certpack
+- name: write out the certs for later use
+  run_once: true
+  delegate_to: localhost
+  copy:
+    content: "{{ item.content | b64decode }}"
+    dest: "{{ playbook_dir }}/files/{{ item.item.split('/')[-1] }}"
+  with_items: "{{ etcd_client_certpack.results }}"

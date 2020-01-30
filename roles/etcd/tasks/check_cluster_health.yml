@@ -1,0 +1,22 @@
+---
+- wait_for:
+    port: 2379
+    host: "{{ private_ip }}"
+- name: get etcd version
+  become: true
+  shell: "docker images | awk '$1 ~ /\\/etcd$/ {print $2}'"
+  register: etcd_tag
+  changed_when: false
+- name: get cluster health info
+  become: true
+  shell: |
+    docker run --rm -it --net host -v /etc/kubernetes:/etc/kubernetes \
+    k8s.gcr.io/etcd:{{ etcd_tag.stdout }} \
+    etcdctl --cert /etc/kubernetes/pki/etcd/peer.crt \
+    --key /etc/kubernetes/pki/etcd/peer.key \
+    --cacert /etc/kubernetes/pki/etcd/ca.crt \
+    --endpoints https://{{ inventory_hostname }}:2379 \
+    endpoint health --cluster
+  register: etcd_cluster_health
+- fail:
+  when: ( "https://%s:2379 is healthy" % inventory_hostname not in etcd_cluster_health.stdout )

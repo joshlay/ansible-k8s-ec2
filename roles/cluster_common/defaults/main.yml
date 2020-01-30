@@ -8,3 +8,6 @@ role_packages:
   - lvm2
   - docker-ce
   - docker-ce-cli
+docker_daemon_options:
+  - "--exec-opt native.cgroupdriver=systemd"
+  - "--dns-search randomuser.org"

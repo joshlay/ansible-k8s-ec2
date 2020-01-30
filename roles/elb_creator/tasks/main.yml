@@ -1,4 +1,5 @@
-- set_fact:
+- name: creating ELB backend node list from ansible_play_batch
+  set_fact:
     instance_list: "{{ instance_list | default([]) + [hostvars[item]['instance_id']] }}"
   with_items: "{{ ansible_play_batch }}"
 - debug: var=instance_list
@@ -16,8 +17,8 @@
     scheme: internal
     listeners:
       - protocol: tcp
-        load_balancer_port: 6443
-        instance_port: 6443
+        load_balancer_port: "{{ listen_port }}"
+        instance_port: "{{ instance_port }}"
   register: kube_vip_raw
 - debug: var=kube_vip_raw
 - set_fact:

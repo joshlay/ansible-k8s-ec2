@@ -1,3 +1,4 @@
+- include_tasks: boot_args.yml
 - name: selinux in permissive, for now
   become: true
   selinux:
@@ -6,7 +7,7 @@
   register: selinux_state
 - reboot:
   become: true
-  when: ( selinux_state.changed )
+  when: ( selinux_state.changed or grub_args.changed )
 - name: load the bridge and overlay  modules
   become: true
   modprobe:

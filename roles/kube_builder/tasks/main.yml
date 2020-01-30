@@ -1,0 +1,13 @@
+# elb at {{ kube_vip }}
+- name: ship certs
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/kubernetes/pki/{{ '/etcd/' if item == 'ca.crt' else '' }}/{{ item }}"
+  with_items: 
+    - ca.crt
+    - apiserver-etcd-client.crt
+    - apiserver-etcd-client.key
+- name: ship kubeadm-config.yaml
+  template:
+    src: kubeadm-config.yaml.j2
+    dest: kubeadm-config.yaml

@@ -22,6 +22,13 @@
       with_items:
         - ca.crt
         - ca.key
+    - name: clean up staged files if recreating
+      become: true
+      file:
+        path: "{{ item | replace('pki', 'pki-%s/pki' % target_host) }}"
+        state: absent
+      when: ( target_host in purge_certs | default([]) )
+      with_items: "{{ cert_files }}"
     - name: change the symlink
       become: true
       file:
@@ -46,6 +53,8 @@
       shell: "kubeadm init phase certs apiserver-etcd-client --config /tmp/{{ target_host }}.etcd.yaml creates=/etc/kubernetes/pki-{{ target_host }}/pki/apiserver-etcd-client.key"
     - stat: 
         path: "{{ item }}"
+        get_checksum: no
+        get_mime: no
       register: cert_files_stat
       with_items: "{{ cert_files }}"
       become: true
@@ -61,12 +70,22 @@
   become: true
   slurp: 
     src: "{{ item | replace('pki', 'pki-%s/pki' % target_host) }}"
-  with_items: "{{ cert_files + ['/etc/kubernetes/pki/etcd/ca.crt'] }}"
+  with_items: "{{ cert_files + ['/etc/kubernetes/pki/etcd/ca.crt', '/etc/kubernetes/pki/etcd/ca.key' ] }}"
   register: cert_data
-- debug: var=cert_data
+  when: ( target_host != inventory_hostname )
 - set_fact:
     role_certs: "{{ role_certs | default({}) | combine( { item.item: item.content | b64decode } ) }}"
   with_items: "{{ cert_data.results }}"
   delegate_to: "{{ target_host }}"
   delegate_facts: true
+  when: ( target_host != inventory_hostname )
+- name: deploy certs
+  become: true
+  copy:
+    content: "{{ item.value }}"
+    dest: "{{ item.key }}"
+  loop: "{{ hostvars.get(target_host).get('role_certs') | dict2items }}"
+  delegate_to: "{{ target_host }}"
+  delegate_facts: true
+  when: ( target_host != inventory_hostname )
 

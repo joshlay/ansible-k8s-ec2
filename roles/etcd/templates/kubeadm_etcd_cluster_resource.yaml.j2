@@ -3,14 +3,14 @@ kind: ClusterConfiguration
 etcd:
     local:
         serverCertSANs:
-        - "{{ inventory_hostname }}"
+        - "{{ target_host }}"
         peerCertSANs:
-        - "{{ inventory_hostname }}"
+        - "{{ target_host }}"
         extraArgs:
             initial-cluster: {{ initial_cluster }}
             initial-cluster-state: new
-            name: {{ inventory_hostname }}
-            listen-peer-urls: https://{{ inventory_hostname }}:2380
-            listen-client-urls: https://{{ inventory_hostname }}:2379
-            advertise-client-urls: https://{{ inventory_hostname }}:2379
-            initial-advertise-peer-urls: https://{{ inventory_hostname }}:2380
+            name: {{ target_host }}
+            listen-peer-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2380
+            listen-client-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2379
+            advertise-client-urls: https://{{ target_host }}:2379
+            initial-advertise-peer-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2380
