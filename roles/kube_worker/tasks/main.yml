@@ -6,5 +6,11 @@
     group: "{{ ansible_user }}"
 - name: ship the kubeconfig
   copy: 
-    src: kubectl.conf
+    src: "{{ playbook_dir }}/local_cache/kubectl.conf"
     dest: "/home/{{ ansible_user }}/.kube/config"
+- name: get a join command
+  become: true
+  shell: >
+    eval $(kubeadm --config /home/{{ ansible_user }}/.kube/config token create --print-join-command)
+  register: cmd
+- debug: var=cmd

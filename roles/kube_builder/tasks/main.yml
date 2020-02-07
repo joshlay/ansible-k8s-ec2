@@ -8,7 +8,7 @@
 - name: ship certs
   become: true
   copy:
-    src: "{{ item }}"
+    src: "{{ playbook_dir }}/local_cache/{{ item }}"
     dest: "/etc/kubernetes/pki/{{ '/etcd/' if item == 'ca.crt' else '' }}/{{ item }}"
   with_items: 
     - ca.crt
@@ -64,12 +64,13 @@
   slurp:
     src: /etc/kubernetes/admin.conf
   register: kubectl_config_raw
+- debug: var=kubectl_config_raw
 - name: get kubeconfig
   run_once: true
   delegate_to: localhost
   copy:
-    content: "{{ kubectl_config_raw.content }}"
-    dest: "{{ playbook_dir }}/files/kubectl.conf"
+    content: "{{ kubectl_config_raw.content | b64decode }}"
+    dest: "{{ playbook_dir }}/local_cache/kubectl.conf"
 - include_tasks: apply_cni.yml
   run_once: true
   

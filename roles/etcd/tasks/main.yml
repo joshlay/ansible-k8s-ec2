@@ -104,5 +104,5 @@
   delegate_to: localhost
   copy:
     content: "{{ item.content | b64decode }}"
-    dest: "{{ playbook_dir }}/files/{{ item.item.split('/')[-1] }}"
+    dest: "{{ playbook_dir }}/local_cache{{ item.item.split('/')[-1] }}"
   with_items: "{{ etcd_client_certpack.results }}"
