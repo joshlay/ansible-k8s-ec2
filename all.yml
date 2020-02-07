@@ -1,14 +1,31 @@
+- name: purge nodes
+  hosts: ec2-k8s:ec2-etcd:ec2-worker
+  gather_facts: false
+  vars:
+    state: absent
+  tasks:
+    - include_role:
+        name: ec2_bootstrap
+        apply:
+          tags: 
+            - purge
+            - never
+      tags: ['purge', 'never']
 - name: bootstrap nodes
-  hosts: ec2-k8s:ec2-etcd
+  hosts: ec2-k8s:ec2-etcd:ec2-worker
   gather_facts: false
   vars:
     cluster_name: cluster0
   tasks:
     - include_role:
         name: ec2_bootstrap
+        apply:
+          tags: ['always']
       tags: ['always']
     - include_role:
         name: cluster_common
+        apply:
+          tags: ['common']
       tags: ['common']
 - name: bring up etcd
   hosts: ec2-etcd
@@ -16,6 +33,8 @@
   tasks:
     - include_role:
         name: etcd
+        apply:
+          tags: ['etcd']
       tags: ['etcd']
 - name: bring up the cluster
   hosts: ec2-k8s
@@ -25,23 +44,34 @@
   tasks:
     - include_role:
         name: elb_creator
+        apply:
+          tags: ['elb', 'always']
       tags: ['elb', 'always']
       vars:
         listen_port: 6443
         instance_port: 6443
     - include_role:
         name: kube_builder
+        apply:
+          tags: ['kube_builder']
       tags: ['kube_builder']
 - name: join the workers
   hosts: ec2-worker
   gather_facts: false
   tasks:
-    - include_role:
-        name: ec2_bootstrap
-      tags: ['always']
+#    - include_role:
+#        name: ec2_bootstrap
+#        apply:
+#          tags: ['always']
+#      tags: ['always']
     - include_role:
         name: cluster_common
+        apply:
+          tags: ['common']
       tags: ['common']
     - include_role:
         name: kube_worker
+        apply:
+          tags: ['worker']
       tags: ['worker']
+
