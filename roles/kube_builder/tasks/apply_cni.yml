@@ -2,11 +2,8 @@
   template:
     src: "{{ cni_plugin }}.yml.j2"
     dest: "/home/{{ ansible_user }}/{{ cni_plugin }}_manifest.yaml"
-  when: do_cni is defined
 - name:
   shell:  >
     kubectl apply -f /home/{{ ansible_user }}/{{ cni_plugin }}_manifest.yaml
     creates=/etc/kubernetes/manifests/cni.yaml
   register: apply_cni
-- debug: var=apply_cni
-  when: do_cni is defined
