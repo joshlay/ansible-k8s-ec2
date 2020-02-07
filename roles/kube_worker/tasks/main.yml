@@ -1,16 +1,29 @@
+- debug: var=ansible_user
+- become: true
+  debug: var=ansible_user
 - name: create kube config dir
+  become: true
   file: 
-    path: "/home/{{ ansible_user }}/.kube"
+    path: "{{ '/home' if item != 'root' else '' }}/{{ item }}/.kube"
     state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  with_items: 
+    - "{{ ansible_user }}"
+    - root
 - name: ship the kubeconfig
+  become: true
   copy: 
+    dest: "{{ '/home' if item != 'root' else '' }}/{{ item }}/.kube/config"
     src: "{{ playbook_dir }}/local_cache/kubectl.conf"
-    dest: "/home/{{ ansible_user }}/.kube/config"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  with_items: 
+    - "{{ ansible_user }}"
+    - 'root'
 - name: get a join command
   become: true
   shell: >
-    eval $(kubeadm --config /home/{{ ansible_user }}/.kube/config token create --print-join-command)
+    eval $( kubeadm token create --print-join-command )
   register: cmd
 - debug: var=cmd
