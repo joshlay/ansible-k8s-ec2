@@ -24,3 +24,5 @@ sysctl_parameters:
       v: 1024
     - p: net.ipv4.ip_nonlocal_bind
       v: 0
+    - p: net.netfilter.nf_conntrack_max
+      v: 1048576
