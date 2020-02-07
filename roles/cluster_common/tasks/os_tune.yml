@@ -43,3 +43,18 @@
   template:
     src: templates/hostfile.j2
     dest: /etc/hosts
+- name: tell NetworkManager to leave calico interfaces alone
+  become: true
+  copy:
+    content: |
+      [keyfile]
+      unmanaged-devices=interface-name:cali*;interface-name:tunl*
+    dest: /etc/NetworkManager/conf.d/calico.conf
+  register: nm_calico_settings
+  when: ( cni_plugin == 'calico' )
+- name: restart NetworkManager if neeeded
+  become: true
+  service:
+    name: NetworkManager
+    state: restarted
+    #    state: "{{ 're' if ( nm_calico_settings.changed | default(false) ) else '' }}started"

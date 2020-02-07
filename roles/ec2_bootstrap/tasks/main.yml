@@ -11,8 +11,6 @@
     region: "{{ region }}"
     user_data: |
       {{ user_data }}
-    tags:
-      testing: True
     vpc_subnet_id: "{{ subnet_id }}"
   register: instances
 - debug: 
