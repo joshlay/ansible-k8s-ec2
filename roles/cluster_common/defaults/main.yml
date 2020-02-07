@@ -8,6 +8,19 @@ role_packages:
   - lvm2
   - docker-ce
   - docker-ce-cli
+#kube_release: 1.16.6-0
+kube_release: 1.17.2-0
 docker_daemon_options:
   - "--exec-opt native.cgroupdriver=systemd"
   - "--dns-search randomuser.org"
+sysctl_parameters:    
+    - p: net.bridge.bridge-nf-call-iptables
+      v: 1
+    - p: net.bridge.bridge-nf-call-ip6tables
+      v: 1
+    - p: net.ipv4.ip_forward
+      v: 1
+    - p: net.core.somaxconn
+      v: 1024
+    - p: net.ipv4.ip_nonlocal_bind
+      v: 0

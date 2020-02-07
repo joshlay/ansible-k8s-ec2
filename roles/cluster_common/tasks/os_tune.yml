@@ -5,9 +5,14 @@
     policy: targeted
     state: permissive
   register: selinux_state
+- name: set hostname
+  become: true
+  hostname:
+    name: "{{ inventory_hostname }}"
+  register: host_name
 - reboot:
   become: true
-  when: ( selinux_state.changed or grub_args.changed )
+  when: ( selinux_state.changed or grub_args.changed or host_name.changed )
 - name: load the bridge and overlay  modules
   become: true
   modprobe:
@@ -28,14 +33,11 @@
 - name: adjust sysctl parameters 
   become: true
   sysctl:
-    name: "{{ item }}"
-    value: "1"
+    name: "{{ item.p }}"
+    value: "{{ item.v }}"
     reload: yes
     sysctl_file: /etc/sysctl.d/kube_recs.conf
-  with_items:
-    - net.bridge.bridge-nf-call-iptables
-    - net.bridge.bridge-nf-call-ip6tables
-    - net.ipv4.ip_forward
+  with_items: "{{ sysctl_parameters }}"
 - name: configure hostfile
   become: true
   template:

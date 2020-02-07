@@ -1,11 +1,16 @@
 ---
 - include: os_tune.yml
 - include: repo_setup.yml
+- set_fact:
+    install_set: "{{ install_set | default([]) + ['%s%s' % (item, '-%s' % kube_release if 'kube' in item else '')] }}"
+  with_items: "{{ role_packages }}"
+- debug: var=install_set
 - name: install packages
   become: true
   dnf:
-    name: "{{ role_packages }}"
+    name: "{{ install_set }}"
     state: present
+    allow_downgrade: yes
 - name: create docker service dropin dir
   become: true
   file:
@@ -42,9 +47,11 @@
   with_items: 
     - kubelet
     - docker
+# this is just a sanity check, not changeful
 - name: prep image pull
   become: true
   shell: kubeadm config images pull
   register: config_images_pull
+  changed_when: false
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/
 
