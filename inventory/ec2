@@ -1,6 +1,7 @@
 [ec2:children]
 ec2-etcd
 ec2-k8s
+ec2-worker
 [ec2-etcd]
 ec2-etcd[00:02].randomuser.org
 [ec2-k8s]
