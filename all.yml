@@ -1,34 +1,47 @@
-- name: bootstrap etcd
+- name: bootstrap nodes
+  hosts: ec2-k8s:ec2-etcd
+  gather_facts: false
+  vars:
+    cluster_name: cluster0
+  tasks:
+    - include_role:
+        name: ec2_bootstrap
+      tags: ['always']
+    - include_role:
+        name: cluster_common
+      tags: ['common']
+- name: bring up etcd
   hosts: ec2-etcd
   gather_facts: false
   tasks:
     - include_role:
-        name: ec2_bootstrap
-      tags: ['always']
-    - include_role:
-        name: cluster_common
-      tags: ['common']
-    - include_role:
         name: etcd
       tags: ['etcd']
-    - include_role:
-        name: kube_init
-- name: bootstrap kube
+- name: bring up the cluster
   hosts: ec2-k8s
   gather_facts: false
+  vars:
+    cluster_name: cluster0
   tasks:
     - include_role:
-        name: ec2_bootstrap
-      tags: ['always']
-    - include_role: 
-        name: cluster_common
-      tags: ['common']
-    - include_role:
         name: elb_creator
-      tags: ['elb']
+      tags: ['elb', 'always']
       vars:
         listen_port: 6443
         instance_port: 6443
     - include_role:
         name: kube_builder
       tags: ['kube_builder']
+- name: join the workers
+  hosts: ec2-worker
+  gather_facts: false
+  tasks:
+    - include_role:
+        name: ec2_bootstrap
+      tags: ['always']
+    - include_role:
+        name: cluster_common
+      tags: ['common']
+    - include_role:
+        name: kube_worker
+      tags: ['worker']

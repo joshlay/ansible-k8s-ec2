@@ -1,0 +1,6 @@
+---
+kubelet_service_arguments:
+  - "--node-ip {{ private_ip }}"
+  #  - "--pod-manifest-path=/etc/kubernetes/manifests"
+  - "--cgroup-driver=systemd"
+kube_api_version: v1beta2

@@ -1,8 +1,0 @@
-#- name: init etcd cacerts
-#  run_once: true
-#  become: true
-#  shell: 'kubeadm init --control-plane-endpoint "{{ kube_vip }}:6443" --upload-certs creates=/etc/kubernetes/pki/etcd/ca.crt'
-#  register: kube_init_raw
-#- debug: var=kube_init_raw
-#
-

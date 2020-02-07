@@ -1,0 +1,62 @@
+---
+apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
+kind: InitConfiguration
+{% if supply_join_tokens is defined %}
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+{% endif %}
+localAPIEndpoint:
+  advertiseAddress: {{ private_ip }}
+  bindPort: 6443
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: {{ inventory_hostname }}
+  {% if default_taint is defined -%}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+  {% else -%}
+  taints: []
+  {% endif -%}
+  kubeletExtraArgs:
+    cgroup-driver: "systemd"
+---
+apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
+kind: ClusterConfiguration
+clusterName: {{ cluster_name }}
+kubernetesVersion: stable
+controlPlaneEndpoint: "{{ kube_vip }}:6443"
+certificatesDir: /etc/kubernetes/pki
+etcd:
+    external:
+        endpoints:
+        {% for host in groups['ec2-etcd'] -%}
+        - https://{{ host }}:2379
+        {% endfor -%}
+        caFile: /etc/kubernetes/pki/etcd/ca.crt
+        certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+        keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
+networking:
+  podSubnet: "{{ pod_network }}"
+  dnsDomain: "kube.randomuser.org"
+  serviceSubnet: 10.96.0.0/12
+apiServer:
+  extraArgs:
+    advertise-address: {{ private_ip }}
+    audit-log-path: "-"
+  timeoutForControlPlane: 10m0s
+  certSANs:
+    - "{{ private_ip }}"
+    - "{{ inventory_hostname }}"
+    - "{{ kube_vip }}"
+controllerManager: {}
+dns:
+  type: CoreDNS
+scheduler: {}
+---

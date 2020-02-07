@@ -1,0 +1,44 @@
+- set_fact:
+    master_host: "{{ inventory_hostname }}"
+- name: preflight checks
+  become: true
+  shell:  >
+    kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml phase preflight
+  register: phase_preflight
+  failed_when: false
+# task below needs improved validation
+- name: init the cluster
+  become: true
+  shell:  >
+    kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml --upload-certs
+    creates=/var/lib/kubelet/config.yaml
+  register: kube_init
+  when: not ( do_steps is defined )
+- include_tasks: kubeadm_init_stepwise.yml
+  when: ( do_steps is defined )
+- debug: var=kube_init
+- name: get join command
+  become: true
+  shell: >
+    kubeadm token --config /home/{{ ansible_user }}/kubeadm-config.yaml create --print-join-command
+  register: join_command_raw
+  changed_when: false
+- name: slurp cacert
+  become: true
+  slurp:
+    src: "{{ item }}"
+  with_items: 
+    - /etc/kubernetes/pki/ca.crt
+    - /etc/kubernetes/pki/ca.key
+    - /etc/kubernetes/pki/sa.key
+    - /etc/kubernetes/pki/sa.pub
+    - /etc/kubernetes/pki/front-proxy-ca.crt
+    - /etc/kubernetes/pki/front-proxy-ca.key
+  register: control_plane_certs
+- name: set join_command and cert info
+  delegate_to: "{{ item }}"
+  delegate_facts: yes
+  set_fact:
+    join_command: "{{ join_command_raw.stdout }}"
+    cp_certs: "{{ control_plane_certs.results }}"
+  with_items: "{{ ansible_play_hosts_all }}"

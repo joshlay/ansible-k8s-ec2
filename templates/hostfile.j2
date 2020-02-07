@@ -1,0 +1,7 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+{% for group in group_names %}
+{% for host in groups[group] %}
+{{ hostvars.get(host).get('private_ip') }} {{ host }} {{ host | replace(".randomuser.org", "") }}
+{% endfor %}
+{% endfor %}
