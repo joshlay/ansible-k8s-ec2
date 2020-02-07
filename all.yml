@@ -42,6 +42,10 @@
   vars:
     cluster_name: cluster0
   tasks:
+    - name: reset, maybe
+      become: true
+      shell: yes | kubeadm reset
+      tags: ['never', 'reset']
     - include_role:
         name: elb_creator
         apply:
@@ -59,16 +63,10 @@
   hosts: ec2-worker
   gather_facts: false
   tasks:
-#    - include_role:
-#        name: ec2_bootstrap
-#        apply:
-#          tags: ['always']
-#      tags: ['always']
-    - include_role:
-        name: cluster_common
-        apply:
-          tags: ['common']
-      tags: ['common']
+    - name: reset, maybe
+      become: true
+      shell: yes | kubeadm reset
+      tags: ['never', 'reset']
     - include_role:
         name: kube_worker
         apply:

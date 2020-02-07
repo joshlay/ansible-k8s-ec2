@@ -18,9 +18,7 @@
   modprobe:
     name: "{{ item }}"
     state: present
-  with_items:
-    - br_netfilter
-    - overlay
+  with_items: "{{ required_kernel_modules }}"
 - name: on boot too
   become: true
   lineinfile:

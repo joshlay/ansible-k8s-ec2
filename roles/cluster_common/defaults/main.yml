@@ -13,6 +13,10 @@ kube_release: 1.17.2-0
 docker_daemon_options:
   - "--exec-opt native.cgroupdriver=systemd"
   - "--dns-search randomuser.org"
+required_kernel_modules:
+  - br_netfilter
+  - nf_conntrack
+  - overlay
 sysctl_parameters:    
     - p: net.bridge.bridge-nf-call-iptables
       v: 1
