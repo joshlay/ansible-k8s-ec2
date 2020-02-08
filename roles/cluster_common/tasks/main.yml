@@ -11,6 +11,13 @@
     name: "{{ install_set }}"
     state: present
     allow_downgrade: yes
+- name: install python modules for which there are not RPMs
+  pip:
+    name: "{{ item }}"
+    state: present
+    extra_args: "--user"
+  with_items: "{{ pip_extra_modules }}"
+  when: ( pip_extra_modules is defined )
 - name: create docker service dropin dir
   become: true
   file:

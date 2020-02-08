@@ -1,1 +1,5 @@
 cni_plugin: calico
+# these are not packaged for f31
+pip_extra_modules:
+ - kubernetes
+ - openshift
