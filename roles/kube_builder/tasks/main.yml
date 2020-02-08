@@ -73,4 +73,3 @@
     dest: "{{ playbook_dir }}/local_cache/kubectl.conf"
 - include_tasks: apply_cni.yml
   run_once: true
-  
