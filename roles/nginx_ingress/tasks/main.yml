@@ -1,0 +1,2 @@
+- include_tasks: ingress_init.yml
+  run_once: true

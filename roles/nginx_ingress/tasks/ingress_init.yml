@@ -1,0 +1,4 @@
+- name: apply manditory resource definitions
+  k8s:
+    apply: yes
+    resource_definition: "{{ lookup('template', 'mandatory.yaml') }}"

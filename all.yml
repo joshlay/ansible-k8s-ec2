@@ -59,6 +59,11 @@
         apply:
           tags: ['kube_builder']
       tags: ['kube_builder']
+    - include_role:
+        name: nginx_ingress
+        apply:
+          tags: ['ingress']
+      tags: ['ingress']
 - name: join the workers
   hosts: ec2-worker
   gather_facts: false
