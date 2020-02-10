@@ -5,11 +5,6 @@
     policy: targeted
     state: permissive
   register: selinux_state
-- name: set hostname
-  become: true
-  hostname:
-    name: "{{ inventory_hostname }}"
-  register: host_name
 - reboot:
   become: true
   when: ( selinux_state.changed or grub_args.changed or host_name.changed )

@@ -64,6 +64,7 @@
         apply:
           tags: ['ingress']
       tags: ['ingress']
+      when: do_ingress is defined
 - name: join the workers
   hosts: ec2-worker
   gather_facts: false
