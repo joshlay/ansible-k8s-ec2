@@ -7,7 +7,7 @@
   register: selinux_state
 - reboot:
   become: true
-  when: ( selinux_state.changed or grub_args.changed or host_name.changed )
+  when: ( selinux_state.changed or grub_args.changed )
 - name: load the bridge and overlay  modules
   become: true
   modprobe:
