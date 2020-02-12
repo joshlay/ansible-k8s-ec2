@@ -3,7 +3,7 @@
   delegate_to: localhost
   ec2_instance: 
     state: "{{ state | default('present') }}"
-    profile: personal
+    profile: {{ aws_profile }}
     image_id: "{{ image_id }}"
     instance_type: "{{ instance_type }}"
     key_name: "{{ ssh_key.aws_label }}"
