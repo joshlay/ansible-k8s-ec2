@@ -12,5 +12,5 @@ etcd:
             name: {{ hostvars.get(target_host).get('ansible_nodename') }}
             listen-peer-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2380
             listen-client-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2379
-            advertise-client-urls: https://{{ target_host }}:2379
+            advertise-client-urls: https://{{ hostvars.get(target_host).get('ansible_nodename') }}:2379
             initial-advertise-peer-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2380

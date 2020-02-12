@@ -15,8 +15,8 @@
     etcdctl --cert /etc/kubernetes/pki/etcd/peer.crt \
     --key /etc/kubernetes/pki/etcd/peer.key \
     --cacert /etc/kubernetes/pki/etcd/ca.crt \
-    --endpoints https://{{ inventory_hostname }}:2379 \
+    --endpoints https://{{ ansible_nodename }}:2379 \
     endpoint health --cluster
   register: etcd_cluster_health
 - fail:
-  when: ( "https://%s:2379 is healthy" % inventory_hostname not in etcd_cluster_health.stdout )
+  when: ( "https://%s:2379 is healthy" % ansible_nodename not in etcd_cluster_health.stdout )

@@ -32,3 +32,4 @@
     ansible_python_interpreter: "{{ interpreter }}"
   with_items: "{{ instances.instances }}"
   when: ( item.tags.Name == inventory_hostname ) 
+- setup:

@@ -16,7 +16,7 @@ localAPIEndpoint:
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
-  name: {{ inventory_hostname }}
+  name: {{ ansible_nodename }}
   {% if default_taint is defined -%}
   taints:
   - effect: NoSchedule
@@ -37,7 +37,7 @@ etcd:
     external:
         endpoints:
         {% for host in groups['ec2-etcd'] -%}
-        - https://{{ host }}:2379
+        - https://{{ hostvars.get(host).get('ansible_nodename') }}:2379
         {% endfor -%}
         caFile: /etc/kubernetes/pki/etcd/ca.crt
         certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
@@ -53,7 +53,7 @@ apiServer:
   timeoutForControlPlane: 10m0s
   certSANs:
     - "{{ private_ip }}"
-    - "{{ inventory_hostname }}"
+    - "{{ ansible_nodename }}"
     - "{{ kube_vip }}"
 controllerManager: {}
 dns:
