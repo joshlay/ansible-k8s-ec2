@@ -26,6 +26,7 @@ nodeRegistration:
   {% endif -%}
   kubeletExtraArgs:
     cgroup-driver: "systemd"
+    cloud-provider: aws
 ---
 apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
 kind: ClusterConfiguration
@@ -48,14 +49,18 @@ networking:
   serviceSubnet: 10.96.0.0/12
 apiServer:
   extraArgs:
+    cloud-provider: aws
     advertise-address: {{ private_ip }}
     audit-log-path: "-"
   timeoutForControlPlane: 10m0s
   certSANs:
     - "{{ private_ip }}"
+    - "{{ inventory_hostname }}"
     - "{{ ansible_nodename }}"
     - "{{ kube_vip }}"
-controllerManager: {}
+controllerManager:
+  extraArgs:
+    cloud_provider: aws
 dns:
   type: CoreDNS
 scheduler: {}

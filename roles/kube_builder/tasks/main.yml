@@ -39,6 +39,7 @@
     content: "{{ item.content | b64decode }}"
     dest: "{{ item.item }}"
   with_items: "{{ cp_certs }}"
+  when: ( cp_certs is defined )
 - name: join the cluster
   become: true
   shell: "{{ join_command }} creates=/var/lib/kubelet/config.yaml {{ '--control-plane' if control_plane_node is defined else '' }}"
