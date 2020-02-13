@@ -9,7 +9,7 @@
   ec2_elb_lb:
     instance_ids: "{{ instance_list }}"
     name: "{{ subnet_id }}-k8s-vip"
-    profile: {{ aws_profile }}
+    profile: "{{ aws_profile }}"
     state: present
     region: "{{ region }}"
     subnets: 

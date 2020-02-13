@@ -3,7 +3,7 @@
   delegate_to: localhost
   ec2_instance: 
     state: "{{ state | default('present') }}"
-    profile: {{ aws_profile }}
+    profile: "{{ aws_profile }}"
     image_id: "{{ image_id }}"
     instance_type: "{{ instance_type }}"
     key_name: "{{ ssh_key.aws_label }}"
@@ -30,6 +30,7 @@
     ansible_ssh_private_key_file:  "{{ ssh_key.local_path }}"
     ansible_ssh_common_args: "{{ ansible_ssh_common_args + ' -o StrictHostKeyChecking=No ' }}"
     ansible_python_interpreter: "{{ interpreter }}"
+    instance_role: admin_role
   with_items: "{{ instances.instances }}"
   when: ( item.tags.Name == inventory_hostname ) 
 - setup:
