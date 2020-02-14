@@ -10,6 +10,8 @@
     key_name: "{{ ssh_key.aws_label }}"
     name: "{{ inventory_hostname }}"
     region: "{{ region }}"
+    tags: "{{ { 'kubernetes.io/cluster/%s' % cluster_name: 'fancy' } }}"
+    purge_tags: yes
     user_data: |
       {{ user_data }}
     vpc_subnet_id: "{{ subnet_id }}"
