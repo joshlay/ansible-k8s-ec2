@@ -1,0 +1,2 @@
+---
+- include_tasks: iam_kube_master.yml

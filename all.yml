@@ -1,3 +1,12 @@
+- name: enforce IAM
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - include_role:
+        name: cluster_iam
+        apply: 
+          tags: ['iam']
+      tags: ['iam']
 - name: purge nodes
   hosts: ec2-k8s:ec2-etcd:ec2-worker
   gather_facts: false

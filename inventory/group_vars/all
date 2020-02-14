@@ -1,1 +1,2 @@
 aws_profile: personal
+region: us-west-2

@@ -1,0 +1,37 @@
+---
+- name: create iam role for masters
+  iam_role:
+    assume_role_policy_document: >
+      {
+         "Version": "2012-10-17",
+         "Statement": [
+           {
+             "Effect": "Allow",
+             "Principal": {
+               "Service": "ec2.amazonaws.com"
+             },
+             "Action": "sts:AssumeRole"
+           }
+         ]
+      }
+    profile: "{{ aws_profile }}"
+    name: kube_master
+    state: present
+    region: "{{ region }}"
+    purge_policies: yes
+    create_instance_profile: yes
+  register: kube_master_role
+- debug: var=item
+  with_items:
+    - "{{ kube_master_role }}"
+- name: create iam policy for masters
+  iam_policy:
+    profile: "{{ aws_profile }}"
+    region: "{{ region }}"
+    iam_name: kube_master
+    iam_type: role
+    policy_name: kube_master_policies
+    policy_json: "{{ lookup('template', 'iam_master_policy.json') }}"
+    state: present
+
+
