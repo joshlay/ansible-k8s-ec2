@@ -9,6 +9,7 @@ role_packages:
   - lvm2
   - docker-ce
   - docker-ce-cli
+  - bind-utils
 #kube_release: 1.16.6-0
 kube_release: 1.17.2-0
 docker_daemon_options:
