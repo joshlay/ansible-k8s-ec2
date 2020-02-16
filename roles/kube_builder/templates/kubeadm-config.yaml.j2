@@ -61,6 +61,7 @@ apiServer:
 controllerManager:
   extraArgs:
     cloud-provider: aws
+    cluster-name: "{{ cluster_name }}"
 dns:
   type: CoreDNS
 scheduler: {}

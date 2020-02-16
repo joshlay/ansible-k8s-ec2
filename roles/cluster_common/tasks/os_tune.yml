@@ -50,4 +50,9 @@
   service:
     name: NetworkManager
     state: restarted
+- name: make life easy for the service user
+  user:
+    name: fedora
+    groups: docker
+    append: yes
     #    state: "{{ 're' if ( nm_calico_settings.changed | default(false) ) else '' }}started"
