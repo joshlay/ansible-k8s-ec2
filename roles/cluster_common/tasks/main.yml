@@ -11,6 +11,11 @@
     name: "{{ install_set }}"
     state: present
     allow_downgrade: yes
+- name: make life easy for the service user
+  user:
+    name: fedora
+    groups: docker
+    append: yes
 - name: install python modules for which there are not RPMs
   pip:
     name: "{{ item }}"
@@ -61,4 +66,5 @@
   register: config_images_pull
   changed_when: false
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/
+
 
