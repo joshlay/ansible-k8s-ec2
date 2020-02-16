@@ -12,6 +12,7 @@
     state: present
     allow_downgrade: yes
 - name: make life easy for the service user
+  become: true
   user:
     name: fedora
     groups: docker
