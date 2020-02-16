@@ -10,7 +10,7 @@
 - name: get cluster health info
   become: true
   shell: |
-    docker run --rm -it --net host -v /etc/kubernetes:/etc/kubernetes \
+    docker run --rm -t  --net host -v /etc/kubernetes:/etc/kubernetes \
     k8s.gcr.io/etcd:{{ etcd_tag.stdout }} \
     etcdctl --cert /etc/kubernetes/pki/etcd/peer.crt \
     --key /etc/kubernetes/pki/etcd/peer.key \
