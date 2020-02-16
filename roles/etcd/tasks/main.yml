@@ -23,7 +23,7 @@
 - name: ship etcd cluster config
   template:
     src: kubeadm_etcd_cluster_resource.yaml.j2
-    dest: "kubeadmcfg.yaml"
+    dest: "/home/{{ ansible_user }}/kubeadmcfg.yaml"
   vars: 
     target_host: "{{ inventory_hostname }}"
 - name: set up CA
