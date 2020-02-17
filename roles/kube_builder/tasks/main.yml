@@ -17,7 +17,7 @@
 - name: ship kubeadm-config.yaml
   template:
     src: kubeadm-config.yaml.j2
-    dest: kubeadm-config.yaml
+    dest: "/home/{{ansible_user}}/kubeadm-config.yaml"
 - fail:
   failed_when: reset_ca is defined
 - name: set kubelet args
