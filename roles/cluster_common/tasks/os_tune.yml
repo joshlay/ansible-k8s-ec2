@@ -20,9 +20,7 @@
     line: "{{ item }}"
     path: /etc/modules-load.d/container_host.conf
     create: yes
-  with_items:
-    - br_netfilter
-    - overlay
+  with_items: "{{ required_kernel_modules }}"
 - name: adjust sysctl parameters 
   become: true
   sysctl:
