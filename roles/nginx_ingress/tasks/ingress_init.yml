@@ -10,7 +10,3 @@
   k8s:
     apply: yes
     resource_definition: "{{ lookup('template', 'patch-configmap-l4.yaml') }}"
-- name: create layer7 ingress service
-  k8s:
-    apply: yes
-    resource_definition: "{{ lookup('template', 'service-l7.yaml') }}"
