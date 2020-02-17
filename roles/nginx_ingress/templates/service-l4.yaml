@@ -7,11 +7,14 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    #service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "*"
     # Ensure the ELB idle timeout is less than nginx keep-alive timeout. By default,
     # NGINX keep-alive is set to 75s. If using WebSockets, the value will need to be
     # increased to '3600' to avoid any potential issues.
-    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "{{ elb_timeout }} "
+    #service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "{{ elb_timeout }} "
+    service.beta.kubernetes.io/aws-load-balancer-type: "elb"
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
 spec:
   type: LoadBalancer
   selector:
@@ -21,11 +24,21 @@ spec:
     - name: http
       port: 80
       protocol: TCP
-      targetPort: http
+      targetPort: 80
     - name: https
       port: 443
       protocol: TCP
-      targetPort: https
+      targetPort: 443
 
 ---
 
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-configuration
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+data:
+  use-proxy-protocol: "true"
