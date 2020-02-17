@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: canary-ingress
+  namespace: default
+spec:
+  rules:
+    - host: canary.randomuser.org
+      http:
+        paths:
+          - backend:
+              serviceName: canary
+              servicePort: 9950
+  
