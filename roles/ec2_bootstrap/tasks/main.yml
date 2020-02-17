@@ -10,8 +10,7 @@
     key_name: "{{ ssh_key.aws_label }}"
     name: "{{ inventory_hostname }}"
     region: "{{ region }}"
-    tags: "{{ { 'kubernetes.io/cluster/%s' % cluster_name: 'fancy' } }}"
-    purge_tags: yes
+    tags: "{{ { 'kubernetes.io/cluster/%s' % cluster_name: 'fancy', 'KubernetesCluster': cluster_name } }}"
     user_data: |
       {{ user_data }}
     vpc_subnet_id: "{{ subnet_id }}"
@@ -35,4 +34,21 @@
     ansible_python_interpreter: "{{ interpreter }}"
   with_items: "{{ instances.instances }}"
   when: ( item.tags.Name == inventory_hostname ) 
+- name: tag ec2 instances
+  delegate_to: localhost
+  ec2_instance: 
+    instance_role: kube_master
+    state: "{{ state | default('present') }}"
+    profile: "{{ aws_profile }}"
+    image_id: "{{ image_id }}"
+    instance_type: "{{ instance_type }}"
+    key_name: "{{ ssh_key.aws_label }}"
+    name: "{{ inventory_hostname }}"
+    region: "{{ region }}"
+    tags: "{{ { 'providerID': 'aws://us-west-2a/%s' % instance_id } }}"
+    purge_tags: no
+    user_data: |
+      {{ user_data }}
+    vpc_subnet_id: "{{ subnet_id }}"
+
 - setup:
