@@ -1,9 +1,6 @@
 - name: ship cni config
-  template:
-    src: "{{ cni_plugin }}.yml.j2"
-    dest: "/home/{{ ansible_user }}/{{ cni_plugin }}_manifest.yaml"
-- name:
-  shell:  >
-    kubectl apply -f /home/{{ ansible_user }}/{{ cni_plugin }}_manifest.yaml
-    creates=/etc/kubernetes/manifests/cni.yaml
-  register: apply_cni
+  delegate_to: localhost
+  run_once: true
+  k8s:
+    resource_definition: "{{ lookup('template', '%s.yml.j1' % cni_plugin }}"
+    apply: yes
