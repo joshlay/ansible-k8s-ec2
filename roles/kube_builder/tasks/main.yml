@@ -20,15 +20,6 @@
     dest: "/home/{{ansible_user}}/kubeadm-config.yaml"
 - fail:
   failed_when: reset_ca is defined
-- name: set kubelet args
-  become: true
-  lineinfile:
-    backrefs: yes
-    regexp: "(KUBELET_EXTRA_ARGS=).*"
-    line: |
-      \1"{{ kubelet_service_arguments | join(' ') }}"
-    path: '/etc/sysconfig/kubelet'
-  run_once: false
 - name: do init stuff
   run_once: true
   include_tasks: kubeadm_init.yml
