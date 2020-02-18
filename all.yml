@@ -31,6 +31,10 @@
         apply:
           tags: ['always']
       tags: ['always']
+    - name: reboot
+      become: true
+      reboot:
+      tags: ['never', 'reboot']
     - include_role:
         name: cluster_common
         apply:
@@ -86,4 +90,10 @@
         apply:
           tags: ['worker']
       tags: ['worker']
+    - include_role:
+        name: canary
+        apply:
+          tags: ['canary']
+      tags: ['canary']
+      run_once: true
 
