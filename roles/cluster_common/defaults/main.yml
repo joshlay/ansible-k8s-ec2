@@ -20,9 +20,12 @@ required_kernel_modules:
   - br_netfilter
   - nf_conntrack
   - overlay
+  - ipt_rpfilter
   - ipt_set
   - xt_ipvs
   - xt_u32
+  - ipip
+  - ip_tables
 sysctl_parameters:    
     - p: net.bridge.bridge-nf-call-iptables
       v: 1
