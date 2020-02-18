@@ -41,4 +41,4 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
 data:
-  use-proxy-protocol: "true"
+  use-proxy-protocol: "false"
