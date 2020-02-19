@@ -91,6 +91,11 @@
           tags: ['worker']
       tags: ['worker']
     - include_role:
+        name: node_seal
+        apply:
+          tags: ['seal']
+      tags: ['seal']
+    - include_role:
         name: canary
         apply:
           tags: ['canary']

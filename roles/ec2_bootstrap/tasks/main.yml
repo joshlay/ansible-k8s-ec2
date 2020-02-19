@@ -15,6 +15,8 @@
       {{ user_data }}
     vpc_subnet_id: "{{ subnet_id }}"
   register: instances
+- debug: var=instances
+  when: ( instance_debug is defined )
 - debug: 
     msg: "{{ inventory_hostname }} mapped to instance {{ item.instance_id }}"
   with_items: "{{ instances.instances }}"
@@ -27,6 +29,7 @@
 - set_fact:
     ansible_host: "{{ item.private_ip_address }}"
     private_ip: "{{ item.private_ip_address }}"
+    node_name: "{{ item.private_dns_name }}"
     instance_id: "{{ item.instance_id }}"
     ansible_user: fedora
     ansible_ssh_private_key_file:  "{{ ssh_key.local_path }}"
