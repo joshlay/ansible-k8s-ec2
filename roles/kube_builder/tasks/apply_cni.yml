@@ -2,5 +2,5 @@
   delegate_to: localhost
   run_once: true
   k8s:
-    resource_definition: "{{ lookup('template', '%s.yml.j1' % cni_plugin }}"
+    resource_definition: "{{ lookup('template', '%s.yml.j2' % cni_plugin )}}"
     apply: yes
