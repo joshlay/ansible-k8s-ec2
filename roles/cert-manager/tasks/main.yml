@@ -1,0 +1,12 @@
+- name: deploy cert-manager
+  delegate_to: localhost
+  k8s:
+    apply: yes
+    resource_definition: "{{ lookup('template', 'cert-manager.yaml.j2') }}"
+    namespace: default
+- name: deploy a clusterissuer
+  delegate_to: localhost
+  k8s:
+    apply: yes
+    resource_definition: "{{ lookup('template', 'issuer-selfsigned.yaml') }}"
+
