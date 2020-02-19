@@ -48,7 +48,7 @@ etcd:
         keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
 networking:
   podSubnet: "{{ pod_network }}"
-  dnsDomain: "kube.randomuser.org"
+  dnsDomain: "{{ cluster_domain }}"
   serviceSubnet: 10.96.0.0/12
 apiServer:
   extraArgs:

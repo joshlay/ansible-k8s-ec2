@@ -5,4 +5,5 @@ pip_extra_modules:
  - openshift
 kube_api_version: v1beta2
 cluster_name: cluster0
+cluster_domain: kube.randomuser.org
 pod_network: 192.168.0.0/16

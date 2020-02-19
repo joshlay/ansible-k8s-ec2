@@ -96,6 +96,13 @@
           tags: ['canary']
       tags: ['canary']
       run_once: true
+    - include_role:
+        name: cert-manager
+        apply:
+          tags: ['cert-manager']
+      tags: ['cert-manager']
+      run_once: true
+
 - name: whatever
   hosts: ec2-k8s:ec2-worker
   gather_facts: smart
