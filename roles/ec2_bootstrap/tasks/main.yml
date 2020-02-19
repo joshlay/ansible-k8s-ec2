@@ -31,6 +31,7 @@
     private_ip: "{{ item.private_ip_address }}"
     node_name: "{{ item.private_dns_name }}"
     instance_id: "{{ item.instance_id }}"
+    provider_id: "aws://{{av_zone}}/{{ item.instance_id }}"
     ansible_user: fedora
     ansible_ssh_private_key_file:  "{{ ssh_key.local_path }}"
     ansible_ssh_common_args: "{{ ansible_ssh_common_args + ' -o StrictHostKeyChecking=No ' }}"
@@ -48,7 +49,7 @@
     key_name: "{{ ssh_key.aws_label }}"
     name: "{{ inventory_hostname }}"
     region: "{{ region }}"
-    tags: "{{ { 'providerID': 'aws://us-west-2a/%s' % instance_id } }}"
+    tags: "{{ { 'providerID': provider_id } }}"
     purge_tags: no
     user_data: |
       {{ user_data }}

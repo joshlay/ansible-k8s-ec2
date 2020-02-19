@@ -1,7 +1,0 @@
-- name: tag nodes
-  delegate_to: localhost
-  run_once: true
-  k8s:
-    apply: yes
-    resource_definition: "{{ lookup('template', 'tag_aws_providerID.yaml') }}"
-    namespace: default

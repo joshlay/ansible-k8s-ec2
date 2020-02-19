@@ -1,6 +1,6 @@
 - name: enforce IAM
   hosts: localhost
-  gather_facts: false
+  gather_facts: smart
   tasks:
     - include_role:
         name: cluster_iam
@@ -9,7 +9,7 @@
       tags: ['iam']
 - name: purge nodes
   hosts: ec2-k8s:ec2-etcd:ec2-worker
-  gather_facts: false
+  gather_facts: smart
   vars:
     state: absent
   tasks:
@@ -22,7 +22,7 @@
       tags: ['purge', 'never']
 - name: bootstrap nodes
   hosts: ec2-k8s:ec2-etcd:ec2-worker
-  gather_facts: false
+  gather_facts: smart
   vars:
     cluster_name: cluster0
   tasks:
@@ -42,7 +42,7 @@
       tags: ['common']
 - name: bring up etcd
   hosts: ec2-etcd
-  gather_facts: false
+  gather_facts: smart
   tasks:
     - include_role:
         name: etcd
@@ -51,7 +51,7 @@
       tags: ['etcd']
 - name: bring up the cluster
   hosts: ec2-k8s
-  gather_facts: false
+  gather_facts: smart
   vars:
     cluster_name: cluster0
   tasks:
@@ -79,7 +79,7 @@
       tags: ['ingress']
 - name: join the workers
   hosts: ec2-worker
-  gather_facts: false
+  gather_facts: smart
   tasks:
     - name: reset, maybe
       become: true
@@ -91,14 +91,21 @@
           tags: ['worker']
       tags: ['worker']
     - include_role:
-        name: node_seal
-        apply:
-          tags: ['seal']
-      tags: ['seal']
-    - include_role:
         name: canary
         apply:
           tags: ['canary']
       tags: ['canary']
       run_once: true
-
+- name: whatever
+  hosts: ec2-k8s:ec2-worker
+  gather_facts: smart
+  tasks:
+    - shell: "{{ whatever }}"
+      become: true
+      register: thatswhat
+      when: ( whatever is defined )
+      tags: ['whatever', 'never']
+    - debug: var=thatswhat.stdout_lines
+      when: ( whatever is defined )
+      tags: ['whatever', 'never']
+  

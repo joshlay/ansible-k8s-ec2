@@ -1,9 +1,0 @@
-{% for host in ansible_play_batch %}
----
-apiVersion: v1
-kind: Node
-metadata:
-  name: {{ hostvars.get(host).get('node_name') }}
-spec:
-  providerID: aws://{{ hostvars.get(host).get('instance_id') }}
-{% endfor %}
