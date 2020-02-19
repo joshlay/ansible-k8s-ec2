@@ -3,9 +3,14 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: selfsigned-issuer
   name: canary-ingress
   namespace: default
 spec:
+  tls:
+    - hosts:
+      - canary.randomuser.org
+      secretName: canary-tls
   rules:
     - host: canary.randomuser.org
       http:

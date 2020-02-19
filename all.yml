@@ -91,16 +91,16 @@
           tags: ['worker']
       tags: ['worker']
     - include_role:
-        name: canary
-        apply:
-          tags: ['canary']
-      tags: ['canary']
-      run_once: true
-    - include_role:
         name: cert-manager
         apply:
           tags: ['cert-manager']
       tags: ['cert-manager']
+      run_once: true
+    - include_role:
+        name: canary
+        apply:
+          tags: ['canary']
+      tags: ['canary']
       run_once: true
 
 - name: whatever
