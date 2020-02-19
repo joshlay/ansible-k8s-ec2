@@ -1,0 +1,16 @@
+apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
+kind: JoinConfiguration
+discovery:
+  bootstrapToken:
+    token: {{ new_token }}
+    apiServerEndpoint: "{{ api_endpoint }}"
+    caCertHashes: 
+      - "{{ token_hash }}"
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  taints: []
+  kubeletExtraArgs:
+    cgroup-driver: "systemd"
+    cloud-provider: aws
+    node-labels: KubernetesCluster={{ cluster_name }}
+    provider-id: {{ provider_id }}

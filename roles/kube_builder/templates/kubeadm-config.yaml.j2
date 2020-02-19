@@ -27,19 +27,9 @@ nodeRegistration:
   kubeletExtraArgs:
     cgroup-driver: "systemd"
     cloud-provider: aws
-    provider-id: aws://us-west-2a/{{ instance_id }}
+    provider-id: {{ provider_id }}"
     node-ip: {{ private_ip }}
     node-labels: KubernetesCluster={{ cluster_name }}
----
-apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
-kind: JoinConfiguration
-nodeRegistration:
-  criSocket: /var/run/dockershim.sock
-  taints: []
-  kubeletExtraArgs:
-    cgroup-driver: "systemd"
-    cloud-provider: aws
-    node-labels: KubernetesCluster={{ cluster_name }},providerID=aws://
 ---
 apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
 kind: ClusterConfiguration

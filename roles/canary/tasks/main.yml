@@ -1,0 +1,12 @@
+- name: bring up canary deployment
+  delegate_to: localhost
+  k8s:
+    apply: yes
+    resource_definition: "{{ lookup('template', 'canary_deployment.yaml') }}"
+    namespace: default
+- name: bring up canary ingress
+  delegate_to: localhost
+  k8s:
+    apply: yes
+    resource_definition: "{{ lookup('template', 'canary_ingress.yaml') }}"
+    namespace: default
