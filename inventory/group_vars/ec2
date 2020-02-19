@@ -3,3 +3,6 @@ cni_plugin: calico
 pip_extra_modules:
  - kubernetes
  - openshift
+kube_api_version: v1beta2
+cluster_name: cluster0
+pod_network: 192.168.0.0/16
