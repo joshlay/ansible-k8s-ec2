@@ -2,7 +2,9 @@
   k8s:
     apply: yes
     resource_definition: "{{ lookup('template', 'mandatory.yaml') }}"
+    kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"
 - name: create layer 4 ingress service
   k8s:
     apply: yes
     resource_definition: "{{ lookup('template', 'service-l4.yaml') }}"
+    kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"

@@ -4,3 +4,4 @@
   k8s:
     resource_definition: "{{ lookup('template', '%s.yml.j2' % cni_plugin )}}"
     apply: yes
+    kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"

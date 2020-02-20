@@ -4,9 +4,11 @@
     apply: yes
     resource_definition: "{{ lookup('template', 'cert-manager.yaml.j2') }}"
     namespace: default
+    kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"
 - name: deploy a clusterissuer
   delegate_to: localhost
   k8s:
     apply: yes
     resource_definition: "{{ lookup('template', 'issuer-selfsigned.yaml') }}"
+    kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"
 

@@ -67,5 +67,5 @@
   run_once: true
 - k8s:
     apply: yes
-    resource_definitions: "{{ lookup('template', 'configmap_coredns.yaml') }}"
+    resource_definition: "{{ lookup('template', 'configmap_coredns.yaml') }}"
     kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"

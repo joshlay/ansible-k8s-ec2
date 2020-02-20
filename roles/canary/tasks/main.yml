@@ -4,9 +4,11 @@
     apply: yes
     resource_definition: "{{ lookup('template', 'canary_deployment.yaml') }}"
     namespace: default
+    kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"
 - name: bring up canary ingress
   delegate_to: localhost
   k8s:
     apply: yes
     resource_definition: "{{ lookup('template', 'canary_ingress.yaml') }}"
     namespace: default
+    kubeconfig: "{{ playbook_dir }}/local_cache/kubectl.conf"
