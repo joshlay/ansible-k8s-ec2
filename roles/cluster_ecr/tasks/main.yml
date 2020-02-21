@@ -4,5 +4,9 @@
     profile: "{{ aws_profile }}"
     name: "{{ cluster_name }}_registry"
   register: cluster_registry
+- debug: var=cluster_registry
+- set_fact:
+    container_repo_uri: "{{ cluster_registry.repository.repositoryUri }}"
+    container_repo_arn: "{{ cluster_registry.repository.repositoryArn }}"
 
 
