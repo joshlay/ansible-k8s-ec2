@@ -1,0 +1,7 @@
+- name: deploy cert-manager
+  delegate_to: localhost
+  k8s:
+    apply: yes
+    resource_definition: "{{ lookup('template', 'sc-ebs.yaml') }}"
+    namespace: default
+
