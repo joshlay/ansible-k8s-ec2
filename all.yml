@@ -7,6 +7,16 @@
         apply: 
           tags: ['iam']
       tags: ['iam']
+- name: set up container registry
+  hosts: localhost
+  gather_facts: smart
+  tasks:
+    - include_role:
+        name: cluster_ecr
+        apply: 
+          tags: ['ecr']
+      tags: ['ecr']
+
 - name: purge nodes
   hosts: ec2-k8s:ec2-etcd:ec2-worker
   gather_facts: smart

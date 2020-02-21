@@ -1,0 +1,8 @@
+- name: create Elastic Container Registry
+  delegate_to: localhost
+  ecs_ecr:
+    profile: "{{ aws_profile }}"
+    name: "{{ cluster_name }}_registry"
+  register: cluster_registry
+
+
