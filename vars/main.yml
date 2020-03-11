@@ -1,0 +1,41 @@
+launch_configs:
+  small_novolume:
+    image_id: ami-051d77f438f689555
+    instance_type: t3.small
+    key_name: "{{ ssh_key.aws_label }}"
+  small_100g: 
+    image_id: ami-051d77f438f689555
+    instance_type: t3.small
+    key_name: "{{ ssh_key.aws_label }}"
+    volumes:
+      - device_name: /dev/sdb1
+        volume_size: 200
+        delete_on_termination: true
+        type: sc1
+  medium_100g: 
+    image_id: ami-051d77f438f689555
+    instance_type: t3.medium
+    key_name: "{{ ssh_key.aws_label }}"
+    volumes:
+      - device_name: /dev/sdb1
+        volume_size: 200
+        delete_on_termination: true
+        type: sc1
+  large_100g: 
+    image_id: ami-051d77f438f689555
+    instance_type: t3.large
+    key_name: "{{ ssh_key.aws_label }}"
+    volumes:
+      - device_name: /dev/sdb1
+        volume_size: 200
+        delete_on_termination: true
+        type: sc1
+  xlarge_100g: 
+    image_id: ami-051d77f438f689555
+    instance_type: t3.xlarge
+    key_name: "{{ ssh_key.aws_label }}"
+    volumes:
+      - device_name: /dev/sdb1
+        volume_size: 200
+        delete_on_termination: true
+        type: sc1

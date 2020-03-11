@@ -1,5 +1,7 @@
 ---
 - name: create iam role for masters
+  delegate_to: localhost
+  run_once: true
   iam_role:
     assume_role_policy_document: >
       {
@@ -21,10 +23,9 @@
     purge_policies: yes
     create_instance_profile: yes
   register: kube_master_role
-- debug: var=item
-  with_items:
-    - "{{ kube_master_role }}"
 - name: create iam policy for masters
+  run_once: true
+  delegate_to: localhost
   iam_policy:
     profile: "{{ aws_profile }}"
     region: "{{ region }}"

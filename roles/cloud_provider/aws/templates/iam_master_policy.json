@@ -91,6 +91,23 @@
             ],
             "Resource": "*",
             "Effect": "Allow"
+        },
+        {
+          "Action": [
+            "acm:AddTagsToCertificate",
+            "acm:DeleteCertificate",
+            "acm:DescribeCertificate",
+            "acm:ExportCertificate",
+            "acm:GetCertificate",
+            "acm:ImportCertificate",
+            "acm:ListCertificates",
+            "acm:ListTagsForCertificate",
+            "acm:RemoveTagsFromCertificate",
+            "acm:RequestCertificate"
+          ],
+          "Resource": "*",
+          "Effect": "Allow"
         }
+
     ]
 }

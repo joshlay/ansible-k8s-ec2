@@ -1,9 +1,10 @@
 - name: enforce IAM
-  hosts: localhost
+  hosts: ec2
   gather_facts: smart
+  vars_files:
   tasks:
     - include_role:
-        name: cluster_iam
+        name: cloud_provider/aws
         apply: 
           tags: ['iam']
       tags: ['iam']
@@ -54,6 +55,11 @@
   hosts: ec2-etcd
   gather_facts: smart
   tasks:
+    - include_role: 
+        name: up
+        apply:
+          tags: ['etcd_certs']
+      tags: ['etcd_certs']
     - include_role:
         name: etcd
         apply:
@@ -95,6 +101,14 @@
       become: true
       shell: yes | kubeadm reset
       tags: ['never', 'reset']
+    - include_role:
+        name: autoscaler
+        apply:
+          tags: ['autoscaler']
+      tags: ['autoscaler']
+      run_once: true
+
+
     - include_role:
         name: kube_worker
         apply:
