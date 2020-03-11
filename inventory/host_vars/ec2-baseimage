@@ -1,0 +1,4 @@
+instance_type: t3.small
+ssh_key:
+  aws_label: aws_id_rsa
+  local_path: ~/.ssh/aws_id_rsa

@@ -1,0 +1,18 @@
+---
+- name: bring up node and image it
+  hosts: ec2-baseimage
+  gather_facts: smart
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - include_role:
+        name: cloud_provider/aws
+    - include_role: 
+        name: ec2_bootstrap
+    - include_role: 
+        name: cluster_common
+        apply:
+          tags: ['common']
+        tags: ['common']
+
+
