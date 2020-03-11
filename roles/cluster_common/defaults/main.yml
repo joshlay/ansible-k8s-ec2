@@ -11,6 +11,9 @@ role_packages:
   - docker-ce-cli
   - bind-utils
   - ipset
+  - python3-boto3
+  - python3-botocore
+  - python3-boto
 #kube_release: 1.16.6-0
 kube_release: 1.17.2-0
 docker_daemon_options:

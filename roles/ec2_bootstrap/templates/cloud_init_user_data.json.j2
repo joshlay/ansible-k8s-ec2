@@ -1,7 +1,18 @@
 #cloud-config
+runcmd:
+  - bash -c 'if ! grep -q systemd.unified_cgroup_heirarchy=0 /etc/default/grub; then . /etc/default/grub; export GRUB_CMDLINE_LINUX+=" systemd.unified_cgroup_heirarchy=0"; sed -ie "s/\(GRUB_CMDLINE_LINUX=\).*/\1\" systemd.unified_cgroup_heirarchy=0\"/" /etc/default/grub;fi'
+  - sed -ie 's/SELINUX=.*/SELINUX=permissive/' /etc/selinux/config
+  - grub2-mkconfig -o /etc/grub2.cfg 
+  {% for module in requred_kernel_modules %}
+  - echo {{ module }} >> /etc/modules-load./d/container_host.conf
+  {% endfor %}
+  {% for param in sysctl_parameters %}
+  - echo "{{ param.p }}={{ param.v }}" >> /etc/sysctl.d/container_host.conf
+  - echo -e '[keyfile]\nunmanaged-devices=interface-name:cali*;interface-name:tunl*' > /etc/NetworkManager/conf.d/calico.conf
 users:
   - name: valentine
     groups: wheel
+    sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys: 
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCubn3cK1NsOS448/IxSHxMI3/2bleerz/GxR/qA/fn+9R6V6wuhRP+MH/WHb3xW+hT67yfjCG5aKrG8HAeeHYpewVW/NR8OGq/JUNzRr1apRbpe0dxHrUu/rqzF5KGLCbKkt5UfJDWlx3aXCwMU9IUSgK87me4bm9QbnKNZ22LxZNCqApqF5bwXa0Ufs3pGxU7CGcvNk9v0shss86x6bn0BltyvlguZ5SLqAWQWjJlXaRmtBoYVCUWhj2XtVgqB4pIyM463IjFQ9ifHAwRMankQI4Z7nopfZjnuq/9lwd+zMfonsed4v2T5lMDU2ar6hLV+JETgidyjF2y8kGHvv8T
 package_update: true

@@ -89,16 +89,28 @@
   shell: "kubeadm init phase etcd local --config=/home/{{ ansible_user }}/kubeadmcfg.yaml"
   register: etcd_init
 - include_tasks: check_cluster_health.yml
+- name: retrieve etcd cacert
+  become: true
+  slurp:
+    src: "/etc/kubernetes/pki/etcd/ca.crt"
+  register: etcd_cacert
 - name: retrieve etcd client cert
   become: true
   slurp:
-    src: "{{ item }}"
-  with_items: 
-    - /etc/kubernetes/pki/etcd/ca.crt
-    - /etc/kubernetes/pki/apiserver-etcd-client.crt
-    - /etc/kubernetes/pki/apiserver-etcd-client.key
+    src: /etc/kubernetes/pki/apiserver-etcd-client.crt
+  register: etcd_clientcert
+- name: retrieve etcd client key
+  become: true
+  slurp:
+    src: /etc/kubernetes/pki/apiserver-etcd-client.key
   run_once: true
-  register: etcd_client_certpack
+  register: etcd_clientkey
+- name: upload certs to acm
+  aws_acm:
+    region: "{{ region }}"
+    certificate: "{{ etcd_clientcert.content |b64decode }}"
+    name_tag: "etcd_{{ cluster_name }}"
+    private_key: "{{ etcd_clientkey.content |b64decode }}"
 - name: write out the certs for later use
   run_once: true
   delegate_to: localhost
@@ -106,3 +118,22 @@
     content: "{{ item.content | b64decode }}"
     dest: "{{ playbook_dir }}/local_cache/{{ item.item.split('/')[-1] }}"
   with_items: "{{ etcd_client_certpack.results }}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,7 @@
+etcd_min_cluster_size: 3
+etcd_max_cluster_size: 3
+ec2_launch:
+  image_id: ami-051d77f438f689555
+  instance_type: t3.small
+  key_name: "{{ ssh_key.aws_label }}"
+  user_data: "{{ lookup('template', 'ec2_user_data.yml') }}"

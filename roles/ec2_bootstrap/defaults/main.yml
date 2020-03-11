@@ -1,1 +1,0 @@
-user_data: "{{ lookup('template', 'templates/cloud_init_user_data.json.j2') | to_json }}"

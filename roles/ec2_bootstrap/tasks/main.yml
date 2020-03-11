@@ -11,8 +11,7 @@
     name: "{{ inventory_hostname }}"
     region: "{{ region }}"
     tags: "{{ { 'kubernetes.io/cluster/%s' % cluster_name: 'fancy', 'KubernetesCluster': cluster_name } }}"
-    user_data: |
-      {{ user_data }}
+    user_data: "{{ user_data | default(omit) }}"
     vpc_subnet_id: "{{ subnet_id }}"
   register: instances
 - debug: var=instances
@@ -32,7 +31,7 @@
     node_name: "{{ item.private_dns_name }}"
     instance_id: "{{ item.instance_id }}"
     provider_id: "aws://{{av_zone}}/{{ item.instance_id }}"
-    ansible_user: fedora
+    ansible_user: "fedora"
     ansible_ssh_private_key_file:  "{{ ssh_key.local_path }}"
     ansible_ssh_common_args: "{{ ansible_ssh_common_args + ' -o StrictHostKeyChecking=No ' }}"
     ansible_python_interpreter: "{{ interpreter }}"
@@ -52,7 +51,7 @@
     tags: "{{ { 'providerID': provider_id } }}"
     purge_tags: no
     user_data: |
-      {{ user_data }}
+      {{ user_data | default(omit) }}
     vpc_subnet_id: "{{ subnet_id }}"
 
 - setup:
