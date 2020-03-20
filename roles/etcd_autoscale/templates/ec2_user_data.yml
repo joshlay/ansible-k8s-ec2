@@ -1,6 +1,15 @@
 #cloud-config
 runcmd:
-  - 
+  - ['mkdir', '-p', '/etc/systemd/system/kubelet.service.d']
+write_files:
+  - content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernetes/manifests --cgroup-driver=systemd
+      Restart=always
+    path: /etc/systemd/system/kubelet.service.d/manifest.conf
+runcmd:
+  - ['systemctl', 'daemon-reload']
 users:
   - name: valentine
     groups: wheel
@@ -11,4 +20,4 @@ package_update: true
 package_upgrade: true
 package_reboot_if_required: true
 packages:
-  - podman
+  - bash
