@@ -1,0 +1,37 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeTags",
+                "autoscaling:DescribeLaunchConfigurations",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:SetDesiredCapacity",
+                "autoscaling:TerminateInstanceInAutoScalingGroup",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:DescribeInstances"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+          "Action": [
+            "acm:AddTagsToCertificate",
+            "acm:DeleteCertificate",
+            "acm:DescribeCertificate",
+            "acm:ExportCertificate",
+            "acm:GetCertificate",
+            "acm:ImportCertificate",
+            "acm:ListCertificates",
+            "acm:ListTagsForCertificate",
+            "acm:RemoveTagsFromCertificate",
+            "acm:RequestCertificate"
+          ],
+          "Resource": "*",
+          "Effect": "Allow"
+        }
+
+    ]
+}
