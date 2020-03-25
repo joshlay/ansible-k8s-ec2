@@ -3,14 +3,14 @@ kind: ClusterConfiguration
 etcd:
     local:
         serverCertSANs:
-        - "{{ hostvars.get(target_host).get('ansible_nodename') }}"
+        - "{{ hostname }}"
         peerCertSANs:
-        - "{{ hostvars.get(target_host).get('ansible_nodename') }}"
+        - "{{ hostname }}"
         extraArgs:
             initial-cluster: {{ initial_cluster }}
             initial-cluster-state: new
-            name: {{ hostvars.get(target_host).get('ansible_nodename') }}
-            listen-peer-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2380
-            listen-client-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2379
-            advertise-client-urls: https://{{ hostvars.get(target_host).get('ansible_nodename') }}:2379
-            initial-advertise-peer-urls: https://{{ hostvars.get(target_host).get('private_ip') }}:2380
+            name: {{ hostname }}
+            listen-peer-urls: https://{{ private_ip }}:2380
+            listen-client-urls: https://{{ private_ip }}:2379
+            advertise-client-urls: https://{{ hostname }}:2379
+            initial-advertise-peer-urls: https://{{ private_ip }}:2380

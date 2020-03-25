@@ -13,6 +13,11 @@
         name: cluster_common
         apply:
           tags: ['common']
-        tags: ['common']
-
-
+      tags: ['common']
+    - include_role:
+        name: etcd_autoscale/image_prep
+        apply:
+          tags: ['etcd']
+      tags: ['etcd']
+    - include_role:
+        name: create_image

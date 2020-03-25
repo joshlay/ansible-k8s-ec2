@@ -1,21 +1,4 @@
 ---
-- name: create dropin service dir for kubelet
-  become: true
-  file:
-    path: /etc/systemd/system/kubelet.service.d
-    state: directory
-- name: configure kubelet service manager for etcd
-  become: true
-  template:
-    src: kube_etc_service_manager.service.j2
-    dest: /etc/systemd/system/kubelet.service.d/20-etc-service-manager.conf
-  register: kube_svc_init
-- name: reload systemd
-  become: true
-  systemd:
-    name: kubelet
-    state: "{{ 're' if kube_svc_init.changed else '' }}started"
-    daemon-reload: "{{ 'yes' if kube_svc_init.changed else omit }}"
 - name: set initial cluster string
   set_fact:
     initial_cluster: "{{ initial_cluster | default('') + '%s=https://%s:2380' % ( hostvars.get(item).get('ansible_nodename'), hostvars.get(item).get('ansible_nodename') ) }},"

@@ -8,7 +8,7 @@ launch_configs:
     instance_type: t3.small
     key_name: "{{ ssh_key.aws_label }}"
     volumes:
-      - device_name: /dev/sdb1
+      - device_name: /dev/xvdb
         volume_size: 200
         delete_on_termination: true
         type: sc1
@@ -17,7 +17,7 @@ launch_configs:
     instance_type: t3.medium
     key_name: "{{ ssh_key.aws_label }}"
     volumes:
-      - device_name: /dev/sdb1
+      - device_name: /dev/xvdb
         volume_size: 200
         delete_on_termination: true
         type: sc1
@@ -26,7 +26,7 @@ launch_configs:
     instance_type: t3.large
     key_name: "{{ ssh_key.aws_label }}"
     volumes:
-      - device_name: /dev/sdb1
+      - device_name: /dev/xvdb
         volume_size: 200
         delete_on_termination: true
         type: sc1
@@ -35,7 +35,9 @@ launch_configs:
     instance_type: t3.xlarge
     key_name: "{{ ssh_key.aws_label }}"
     volumes:
-      - device_name: /dev/sdb1
+      - device_name: /dev/xvdb
         volume_size: 200
         delete_on_termination: true
         type: sc1
+universal_image_version: "0.1"
+subnet_id: subnet-b86d64da

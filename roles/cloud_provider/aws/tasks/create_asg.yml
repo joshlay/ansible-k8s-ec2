@@ -9,6 +9,7 @@
     instance_type: "{{ launch_configs[item].get('instance_type') }}"
     key_name: "{{ ssh_key.aws_label }}"
     volumes: "{{ launch_configs[item]['volumes'] |default(omit) }}"
+    instance_profile_name: kube_master
   with_items: "{{ launch_configs.keys()|list }}"
 
 - name: define autoscaling group

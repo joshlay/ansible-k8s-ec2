@@ -1,0 +1,55 @@
+- include_tasks: etcd_iam.yml
+- name: find image
+  ec2_ami_info:
+    profile: "{{ aws_profile }}"
+    owner: "self"
+    region: "{{ region }}"
+    filters:
+      name: "{{ cluster_name }}-universal"
+      tag:randomuser.org/hamburger: "true"
+      tag:randomuser.org/usage: "etcd"
+      tag:randomuser.org/version: "{{ universal_image_version }}"
+  register: discovered_image
+- set_fact:
+    use_ami: "{{ discovered_image.images[0].image_id }}"
+- name: purge old lc
+  ec2_lc:
+    profile: "{{ aws_profile }}"
+    name: "{{ cluster_name }}-etcd-launch"
+    state: absent
+- name: define etcd launch config
+  ec2_launch_template:
+    template_name: "{{ cluster_name }}-etcd-launch"
+    region: "{{ region }}"
+    profile: "{{ aws_profile }}"
+    image_id: "{{ use_ami }}"
+    instance_type: "{{ etcd_launch.instance_type }}"
+    iam_instance_profile: etcd_node
+    default_version: "latest"
+    key_name: "{{ ssh_key.aws_label }}"
+    user_data: "{{ lookup('template', 'ec2_user_data.yml') |b64encode }}"
+    block_device_mappings: "{{ etcd_launch.volumes | default(omit) }}"
+    tags:
+      randomuser.org/usage: etcd
+      randomuser.org/launch_version: "0.1"
+  register: lt
+- debug: var=lt
+
+- name: instantiate etcd autoscaling group
+  ec2_asg:
+    profile: "{{ aws_profile }}"
+    name: "{{ cluster_name }}-etcd"
+    default_cooldown: 300
+    health_check_period: 300
+    health_check_type: EC2
+    launch_template:
+      launch_template_name: "{{ cluster_name }}-etcd-launch"
+      version: "{{ ec2_launch.version | default('$Latest') }}"
+    metrics_collection: no
+    min_size: 3
+    max_size: 3
+    desired_capacity: 3
+    region: "{{ region }}"
+    replace_all_instances: yes
+    vpc_zone_identifier:
+      - "{{ subnet_id }}"

@@ -1,0 +1,6 @@
+- name: copy etcd helper script
+  become: true
+  copy:
+    src: etcd_bootstrap.py
+    dest: /usr/local/bin/
+    mode: 0755
