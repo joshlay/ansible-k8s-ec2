@@ -1,7 +1,11 @@
+- name: set up the image
+  import_playbook: create_image.yml
+  tags: ['never', 'new_image']
+
 - name: bring up a cluster via autoscale groups
   hosts: localhost
   vars_files: vars/main.yml
   tasks:
-    - include_role: 
-        name: etcd_autoscale/asg
+      - include_role: 
+          name: etcd_autoscale/asg
 

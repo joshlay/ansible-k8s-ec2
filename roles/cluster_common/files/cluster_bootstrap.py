@@ -21,6 +21,7 @@ class etcd_helper(object):
         self.session = Session(region_name=self.i['region'])
         self.autoscaling = self.session.client('autoscaling')
         self.ec2 = self.session.client('ec2')
+        self.elb = self.session.client('elb')
         self.tags = {}
         rawtags = self.ec2.describe_tags(DryRun=False, Filters=[ { 'Name': 'resource-id', 'Values': [self.i["instanceId"]]} ] )
         for tag in rawtags['Tags']:
@@ -30,14 +31,22 @@ class etcd_helper(object):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
         my_asg = self.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[my_asg_name])
-        peer_ids = [ instance['InstanceId'] for instance in my_asg['AutoScalingGroups'][0]['Instances'] ]    
-        peers = self.ec2.describe_instances(InstanceIds=peer_ids)
-        peer_ips = [ peer['Instances'][0]['PrivateIpAddress'] for peer in peers['Reservations'] ]
-        return peer_ips
+        if len(my_asg['AutoScalingGroups'] > 0:1
+            peer_ids = [ instance['InstanceId'] for instance in my_asg['AutoScalingGroups'][0]['Instances'] ]    
+            peers = self.ec2.describe_instances(InstanceIds=peer_ids)
+            peer_ips = [ peer['Instances'][0]['PrivateIpAddress'] for peer in peers['Reservations'] ]
+            return peer_ips
+        else:
+            print("Instance is not a member of an autoscaling group!  This script is not useful here.")
+            sys.exit(1)
     def get_initial_cluster_string(self):
         peer_ips = self.get_autoscaling_peer_ips()
         initial_cluster = 'https://'.join([ ip + ":2380," for ip in peer_ips ]).strip(',')
         return initial_cluster
+    def find_load_balancer(self, usage):
+        b = self.elb.describe_load_balancers(PageSize=100)
+        balancers = b['LoadBalancerDescription']
+        
     def render_manifest(self):
         f = open('/usr/local/share/etcd_autoscale/manifest_template.j2')
         t = f.read()

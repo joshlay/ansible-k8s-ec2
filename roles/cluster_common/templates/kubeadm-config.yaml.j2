@@ -35,9 +35,6 @@ apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
 kind: ClusterConfiguration
 clusterName: {{ cluster_name }}
 kubernetesVersion: stable
-(% if kube_vip is defined %}
-controlPlaneEndpoint: "{{ kube_vip }}:6443"
-{% endif %}
 certificatesDir: /etc/kubernetes/pki
 etcd:
     external:
@@ -62,9 +59,6 @@ apiServer:
     - "{{ private_ip }}"
     - "{{ inventory_hostname }}"
     - "{{ ansible_nodename }}"
-(% if kube_vip is defined %}
-    - "{{ kube_vip }}"
-{% endif %}
 controllerManager:
   extraArgs:
     cloud-provider: aws

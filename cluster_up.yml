@@ -1,0 +1,11 @@
+- name: enforce IAM
+  hosts: ec2
+  gather_facts: smart
+  vars_files:
+  tasks:
+    - include_role:
+        name: cloud_provider/aws
+        apply: 
+          tags: ['iam']
+      tags: ['iam']
+

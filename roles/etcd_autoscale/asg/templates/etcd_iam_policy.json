@@ -31,7 +31,15 @@
           ],
           "Resource": "*",
           "Effect": "Allow"
+        },
+        {
+          "Action": [
+            "elasticloadbalancing:DescribeLoadBalancers",
+            "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+            "elasticloadbalancing:RegisterInstancesWithLoadBalancer"
+          ],
+          "Resource": "*",
+          "Effect": "Allow"
         }
-
     ]
 }

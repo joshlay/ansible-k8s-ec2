@@ -1,25 +1,10 @@
-- name: create openssl private key
+- name: generate ca certs
   become: true
-  openssl_privatekey:
-    path: /etc/kubernetes/pki/etcd/ca.key
-- name: create openssl csr
-  become: true
-  openssl_csr:
-    common_name: etcd-ca
-    basic_constraints:
-      - CA:TRUE
-    basic_constraints_critical: yes
-    #authority_cert_serial_number: 1
-    #authority_cert_issuer: CA:etcd-ca
-    path: /etc/kubernetes/pki/etcd/ca.csr
-    privatekey_path: /etc/kubernetes/pki/etcd/ca.key
-
-
-- name: create etcd cacert
-  become: true
-  openssl_certificate:
-    provider: selfsigned
-    signature_algorithms: sha256WithRSAEncryption
-    privatekey_path: /etc/kubernetes/pki/etcd/ca.key
-    path: /etc/kubernetes/pki/etcd/ca.crt
-    csr_path: /etc/kubernetes/pki/etcd/ca.csr
+  shell:  >
+    kubeadm init phase certs etcd-ca
+    #kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml phase certs ca
+    creates=/etc/kubernetes/pki/ca.key
+  register: phase_certs_etcd_ca
+- debug:
+    msg: |
+      {{ phase_certs_etcd_ca.stdout | default('') }}

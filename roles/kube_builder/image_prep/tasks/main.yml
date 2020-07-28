@@ -1,10 +1,1 @@
-- name: copy cluster resource template
-  copy: 
-    src: kubeadm-config.yaml.j2
-    dest: "/home/{{ ansible_user }}/kubeadm-config.yaml.j2"
-- name: generate ca certs
-  become: true
-  shell: >
-    kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml phase certs ca
-    creates=/etc/kubernetes/pki/ca.key
-  register: phase_certs_ca
+- include_tasks: cert_provision.yml
