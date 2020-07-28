@@ -67,5 +67,11 @@
   register: config_images_pull
   changed_when: false
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/
+- name: copy helper script
+  become: true
+  copy:
+    src: cluster_bootstrap.py
+    dest: /usr/local/bin/
+    mode: 0755
 
 

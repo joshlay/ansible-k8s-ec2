@@ -1,4 +1,3 @@
-- debug: var=user_data
 - name: create ec2 instances
   delegate_to: localhost
   ec2_instance: 

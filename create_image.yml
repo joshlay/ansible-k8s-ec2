@@ -1,7 +1,7 @@
 ---
 - name: bring up node and image it
   hosts: ec2-baseimage
-  gather_facts: smart
+  gather_facts: false
   vars_files:
     - vars/main.yml
   tasks:
@@ -17,6 +17,11 @@
         apply:
           tags: ['etcd']
       tags: ['etcd']
+    - include_role:
+        name: kube_builder/image_prep
+        apply:
+          tags: ['kube_prep']
+      tags: ['kube_prep']
     - include_role:
         name: create_image
         apply:
