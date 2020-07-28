@@ -11,6 +11,7 @@ etcd_launch:
         delete_on_termination: yes
         volume_size: 20
         volume_type: gp2
+  version: "{{ universal_image_version }}"
 ssh_key:
   aws_label: aws_id_rsa
   local_path: ~/.ssh/aws_id_rsa

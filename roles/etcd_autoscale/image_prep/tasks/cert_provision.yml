@@ -1,0 +1,25 @@
+- name: create openssl private key
+  become: true
+  openssl_privatekey:
+    path: /etc/kubernetes/pki/etcd/ca.key
+- name: create openssl csr
+  become: true
+  openssl_csr:
+    common_name: etcd-ca
+    basic_constraints:
+      - CA:TRUE
+    basic_constraints_critical: yes
+    #authority_cert_serial_number: 1
+    #authority_cert_issuer: CA:etcd-ca
+    path: /etc/kubernetes/pki/etcd/ca.csr
+    privatekey_path: /etc/kubernetes/pki/etcd/ca.key
+
+
+- name: create etcd cacert
+  become: true
+  openssl_certificate:
+    provider: selfsigned
+    signature_algorithms: sha256WithRSAEncryption
+    privatekey_path: /etc/kubernetes/pki/etcd/ca.key
+    path: /etc/kubernetes/pki/etcd/ca.crt
+    csr_path: /etc/kubernetes/pki/etcd/ca.csr

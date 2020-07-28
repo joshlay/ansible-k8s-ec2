@@ -1,3 +1,4 @@
+universal_image_version: "4"
 launch_configs:
   small_novolume:
     image_id: ami-051d77f438f689555
@@ -39,5 +40,4 @@ launch_configs:
         volume_size: 200
         delete_on_termination: true
         type: sc1
-universal_image_version: "0.1"
 subnet_id: subnet-b86d64da

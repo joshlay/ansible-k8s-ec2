@@ -1,0 +1,35 @@
+- name: find image
+  delegate_to: localhost
+  ec2_ami_info:
+    profile: "{{ aws_profile }}"
+    owner: "self"
+    region: "{{ region }}"
+    filters:
+      name: "{{ cluster_name }}-universal"
+      tag:randomuser.org/hamburger: "true"
+      tag:randomuser.org/usage: "etcd"
+  register: discovered_image
+- set_fact:
+    replace_image: "{{ discovered_image.images[0].image_id }}"
+    replace_image_version: "{{ discovered_image.images[0].tags['randomuser.org/version'] }}"
+  when: discovered_image.images is defined
+- debug: var=replace_image_version
+- name: capture image
+  delegate_to: localhost
+  ec2_ami:
+    profile: "{{ aws_profile }}"
+    region: "{{ region }}"
+    description: "universal base image"
+    instance_id: "{{ instance_id }}"
+    image_id: "{{ replace_image | default(omit) }}"
+    name: "{{ cluster_name }}-universal"
+    tags:
+      randomuser.org/hamburger: "true"
+      randomuser.org/usage: "etcd"
+      randomuser.org/version: "{{ universal_image_version }}"
+    wait: yes
+  register: ec2_image
+  when: (replace_image_version | default('None') != universal_image_version)
+- debug: var=ec2_image
+   
+

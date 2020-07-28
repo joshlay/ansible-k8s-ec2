@@ -8,7 +8,6 @@
       name: "{{ cluster_name }}-universal"
       tag:randomuser.org/hamburger: "true"
       tag:randomuser.org/usage: "etcd"
-      tag:randomuser.org/version: "{{ universal_image_version }}"
   register: discovered_image
 - set_fact:
     use_ami: "{{ discovered_image.images[0].image_id }}"
@@ -31,7 +30,7 @@
     block_device_mappings: "{{ etcd_launch.volumes | default(omit) }}"
     tags:
       randomuser.org/usage: etcd
-      randomuser.org/launch_version: "0.1"
+      randomuser.org/launch_version: "{{ etcd_launch.version| default('0.2') }}"
   register: lt
 - debug: var=lt
 
@@ -44,7 +43,7 @@
     health_check_type: EC2
     launch_template:
       launch_template_name: "{{ cluster_name }}-etcd-launch"
-      version: "{{ ec2_launch.version | default('$Latest') }}"
+      version: "{{ etcd_launch.version | default('$Latest') }}"
     metrics_collection: no
     min_size: 3
     max_size: 3

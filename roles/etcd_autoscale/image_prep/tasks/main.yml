@@ -4,3 +4,5 @@
     src: etcd_bootstrap.py
     dest: /usr/local/bin/
     mode: 0755
+- include_tasks: cert_provision.yml
+

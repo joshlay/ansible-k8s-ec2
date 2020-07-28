@@ -9,7 +9,7 @@ import subprocess
 
 metaurl='http://169.254.169.254/latest/meta-data/'
 
-class etcd_cert_helper(object):
+class etcd_helper(object):
     def __init__(self):
         r = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document')
         if r.ok:
@@ -25,7 +25,6 @@ class etcd_cert_helper(object):
             sys.exit(1)
         
         self.session = Session(region_name=self.i['region'])
-        self.acm = self.session.client('acm')
         self.autoscaling = self.session.client('autoscaling')
         self.ec2 = self.session.client('ec2')
     def get_autoscaling_peer_ips(self):
@@ -53,37 +52,19 @@ class etcd_cert_helper(object):
 		return manifest
     def create_certs(self):
         print("creating certs")
+        create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
         pass
-    def is_my_cert_here(self,certlist):
-        for cert in certlist:
-            if False:
-                correct_cert = cert
-                return correct_cert
-            else:
-                print("how did we get here")
-                return False
-
-    def put_cert(self, cert):
-        """
-        this puts the certs where they go
-        """
-        return True
+    def write_manifest(self):
+        manifest = self.render_manifest()
+        m = open('/etc/kubernetes/manifests/etcd.yaml')
+        mm = m.write(manifest)
+        m.close()
     def main(self):
-        certlist = self.acm.list_certificates()
-        if certlist['ResponseMetadata']['HTTPStatusCode'] != 200:
-            print("unable to retrieve certificates, exiting")
-            sys.exit(1)
-        certs = certlist['CertificateSummaryList']
-        my_cert = self.is_my_cert_here(certlist)
-        if my_cert:
-            try_put = put_cert(my_cert)
-        else:
-            self.create_certs()
-        
+        self.write_manifest()
 
 if __name__ == '__main__':
     print("helping")
-    helper = etcd_cert_helper()
+    helper = etcd_helper()
     helper.main()
 else:
     print(__name__)
