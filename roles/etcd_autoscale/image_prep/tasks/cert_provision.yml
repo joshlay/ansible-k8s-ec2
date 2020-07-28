@@ -3,7 +3,7 @@
   shell:  >
     kubeadm init phase certs etcd-ca
     #kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml phase certs ca
-    creates=/etc/kubernetes/pki/ca.key
+    creates=/etc/kubernetes/pki/etcd/ca.key
   register: phase_certs_etcd_ca
 - debug:
     msg: |

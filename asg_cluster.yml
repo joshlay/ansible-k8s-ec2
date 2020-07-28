@@ -1,6 +1,6 @@
 - name: set up the image
   import_playbook: create_image.yml
-  tags: ['never', 'new_image']
+  #tags: ['never', 'new_image']
 
 - name: bring up a cluster via autoscale groups
   hosts: localhost

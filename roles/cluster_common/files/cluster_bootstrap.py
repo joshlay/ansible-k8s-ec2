@@ -31,7 +31,7 @@ class etcd_helper(object):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
         my_asg = self.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[my_asg_name])
-        if len(my_asg['AutoScalingGroups'] > 0:1
+        if len(my_asg['AutoScalingGroups']) > 0:
             peer_ids = [ instance['InstanceId'] for instance in my_asg['AutoScalingGroups'][0]['Instances'] ]    
             peers = self.ec2.describe_instances(InstanceIds=peer_ids)
             peer_ips = [ peer['Instances'][0]['PrivateIpAddress'] for peer in peers['Reservations'] ]

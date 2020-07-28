@@ -8,9 +8,11 @@
       name: "{{ cluster_name }}-universal"
       tag:randomuser.org/hamburger: "true"
       tag:randomuser.org/usage: "etcd"
-  register: discovered_image
+      tag:randomuser.org/version: "{{ asg_image_version }}"
+  register: latest_image
+- debug: var=latest_image
 - set_fact:
-    use_ami: "{{ discovered_image.images[0].image_id }}"
+    use_ami: "{{ latest_image.images[0].image_id }}"
 - name: purge old lc
   ec2_lc:
     profile: "{{ aws_profile }}"
@@ -31,6 +33,7 @@
     tags:
       randomuser.org/usage: etcd
       randomuser.org/launch_version: "{{ etcd_launch.version| default('0.2') }}"
+      KubernetesCluster: "{{ cluster_name }}"
   register: lt
 - debug: var=lt
 
@@ -43,7 +46,7 @@
     health_check_type: EC2
     launch_template:
       launch_template_name: "{{ cluster_name }}-etcd-launch"
-      version: "{{ etcd_launch.version | default('$Latest') }}"
+      version: "$Latest"
     metrics_collection: no
     min_size: 3
     max_size: 3
