@@ -19,10 +19,9 @@
     append: yes
 - name: install python modules for which there are not RPMs
   pip:
-    name: "{{ item }}"
+    name: "{{ pip_extra_modules }}"
     state: present
     extra_args: "--user"
-  with_items: "{{ pip_extra_modules }}"
   when: ( pip_extra_modules is defined )
 - name: create docker service dropin dir
   become: true
@@ -68,7 +67,7 @@
   changed_when: false
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/
 - name: copy cluster resource template
-  copy: 
+  template: 
     src: kubeadm-config.yaml.j2
     dest: "/home/{{ ansible_user }}/kubeadm-config.yaml.j2"
 - name: generate ca certs
