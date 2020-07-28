@@ -67,6 +67,5 @@
   register: config_images_pull
   changed_when: false
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/
-- include: kube_prep.yml
 
 
