@@ -43,10 +43,15 @@ class etcd_helper(object):
         peer_ips = self.get_autoscaling_peer_ips()
         initial_cluster = 'https://'.join([ ip + ":2380," for ip in peer_ips ]).strip(',')
         return initial_cluster
-    def find_load_balancer(self, usage):
-        b = self.elb.describe_load_balancers(PageSize=100)
-        balancers = b['LoadBalancerDescription']
-        
+    def find_load_balancer(self):
+        elb_name = f"{self.cluster}-etcd"
+        b = self.elb.describe_load_balancers(LoadBalancerNames=[elb_name])
+        balancers = b['LoadBalancerDescriptions']
+        if len(balancers) != 1:
+            print("this script expects exactly one prepared ELB and cannot continue.")
+            sys.exit(1)
+        else:
+            return balancers[0]['DNSName']
     def render_manifest(self):
         f = open('/usr/local/share/etcd_autoscale/etcd_manifest.yaml.j2')
         t = f.read()
@@ -55,7 +60,8 @@ class etcd_helper(object):
         manifest = template.render(
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
-          initial_cluster = self.get_initial_cluster_string()
+          initial_cluster = self.get_initial_cluster_string(),
+          balancer_hostname = self.find_load_balancer()
           )
         return manifest
     def create_certs(self):
