@@ -34,17 +34,21 @@ class etcd_helper(object):
         if len(my_asg['AutoScalingGroups']) > 0:
             peer_ids = [ instance['InstanceId'] for instance in my_asg['AutoScalingGroups'][0]['Instances'] ]    
             peers = self.ec2.describe_instances(InstanceIds=peer_ids)
-            peer_ips = [ peer['Instances'][0]['PrivateIpAddress'] for peer in peers['Reservations'] ]
+            peer_ips = [ peer['PrivateIpAddress'] for peer in peers['Reservations'][0]['Instances'] ]
             return peer_ips
         else:
             print("Instance is not a member of an autoscaling group!  This script is not useful here.")
             sys.exit(1)
     def get_initial_cluster_string(self):
         peer_ips = self.get_autoscaling_peer_ips()
-        initial_cluster = 'https://'.join([ ip + ":2380," for ip in peer_ips ]).strip(',')
+        initial_cluster = ','.join([ f"https://{ ip }:2380" for ip in peer_ips ])
         return initial_cluster
-    def find_load_balancer(self):
-        elb_name = f"{self.cluster}-etcd"
+    def find_load_balancer(self, role):
+        if role in ['etcd', 'k8s']:
+            elb_name = f"{self.cluster}-{role}"
+        else:
+            print("this script looks for 'k8s' or 'etcd' LBs, but somehow was asked for something else.")
+            sys.exit(1)
         b = self.elb.describe_load_balancers(LoadBalancerNames=[elb_name])
         balancers = b['LoadBalancerDescriptions']
         if len(balancers) != 1:
@@ -52,29 +56,29 @@ class etcd_helper(object):
             sys.exit(1)
         else:
             return balancers[0]['DNSName']
-    def render_manifest(self):
-        f = open('/usr/local/share/etcd_autoscale/etcd_manifest.yaml.j2')
+    def render_kubeconfig(self):
+        f = open('/usr/local/share/etcd_autoscale/etcd_kubeconfig.yaml.j2')
         t = f.read()
         f.close()
         template = Template(t)
-        manifest = template.render(
+        kubeconfig = template.render(
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
           initial_cluster = self.get_initial_cluster_string(),
           balancer_hostname = self.find_load_balancer()
           )
-        return manifest
+        return kubeconfig
     def create_certs(self):
         print("creating certs")
         create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
         pass
-    def write_manifest(self):
-        manifest = self.render_manifest()
-        m = open('/etc/kubernetes/manifests/etcd.yaml', 'w')
-        mm = m.write(manifest)
+    def write_kubeconfig(self):
+        kubeconfig = self.render_kubeconfig()
+        m = open('/tmp/kubeconfig.yaml', 'w')
+        mm = m.write(kubeconfig)
         m.close()
     def main(self):
-        self.write_manifest()
+        self.write_kubeconfig()
 
 if __name__ == '__main__':
     print("helping")
