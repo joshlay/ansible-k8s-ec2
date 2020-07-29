@@ -65,9 +65,12 @@ class etcd_helper(object):
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
           initial_cluster = self.get_initial_cluster_string(),
-          balancer_hostname = self.find_load_balancer()
           )
         return kubeconfig
+    def write_manifest(self):
+        print("rendering manifest")
+        manifest_invocation = subprocess.check_call('kubeadm init phase etcd local --config /tmp/kubeconfig.yaml'.split())
+        pass
     def create_certs(self):
         print("creating certs")
         create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
@@ -79,6 +82,7 @@ class etcd_helper(object):
         m.close()
     def main(self):
         self.write_kubeconfig()
+        self.write_manifest()
 
 if __name__ == '__main__':
     print("helping")

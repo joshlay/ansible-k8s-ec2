@@ -4,9 +4,9 @@
   file:
     path: /usr/local/share/etcd_autoscale
     state: directory
-- name: drop etcd manifest template on image
+- name: drop etcd kubeconfig template on image
   become: true
   copy:
-    src: etcd_manifest.yaml.j2
-    dest: /usr/local/share/etcd_autoscale/etcd_manifest.yaml.j2
+    src: etcd_kubeconfig.yaml.j2
+    dest: /usr/local/share/etcd_autoscale/etcd_kubeconfig.yaml.j2
 
