@@ -1,2 +1,6 @@
 - include_tasks: cert_provision.yml
+- name: drop etcd manifest template on image
+  copy:
+    src: etcd_manifest.yaml.j2
+    dest: /usr/local/share/etcd_autoscale/etcd_manifest.yaml.j2
 

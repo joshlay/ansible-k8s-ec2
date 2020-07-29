@@ -48,7 +48,7 @@ class etcd_helper(object):
         balancers = b['LoadBalancerDescription']
         
     def render_manifest(self):
-        f = open('/usr/local/share/etcd_autoscale/manifest_template.j2')
+        f = open('/usr/local/share/etcd_autoscale/etcd_manifest.yaml.j2')
         t = f.read()
         f.close()
         template = Template(t)
