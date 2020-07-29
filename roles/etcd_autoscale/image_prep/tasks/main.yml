@@ -1,4 +1,8 @@
 - include_tasks: cert_provision.yml
+- name: update packages
+  yum:
+    name: "*"
+    state: latest
 - name: create utility  dir
   become: true
   file:
