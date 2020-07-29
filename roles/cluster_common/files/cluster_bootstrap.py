@@ -54,7 +54,7 @@ class etcd_helper(object):
         template = Template(t)
         manifest = template.render(
           hostname = self.i['hostname'],
-          private_ip = self.i['private_ip'],
+          private_ip = self.i['privateIp'],
           initial_cluster = self.get_initial_cluster_string()
           )
         return manifest
@@ -64,7 +64,7 @@ class etcd_helper(object):
         pass
     def write_manifest(self):
         manifest = self.render_manifest()
-        m = open('/etc/kubernetes/manifests/etcd.yaml')
+        m = open('/etc/kubernetes/manifests/etcd.yaml', 'w')
         mm = m.write(manifest)
         m.close()
     def main(self):

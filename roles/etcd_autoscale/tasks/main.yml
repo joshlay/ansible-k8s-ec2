@@ -1,3 +1,5 @@
+- include_role:
+    name: elb_creator
 - name: define launch config
   run_once: true
   delegate_to: localhost
