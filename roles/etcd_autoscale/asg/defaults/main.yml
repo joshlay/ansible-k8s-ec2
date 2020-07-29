@@ -16,3 +16,5 @@ etcd_launch:
 ssh_key:
   aws_label: aws_id_rsa
   local_path: ~/.ssh/aws_id_rsa
+listen_port: 6443
+instance_port: 6443

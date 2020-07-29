@@ -1,2 +1,3 @@
 listen_port: 6443
 instance_port: 6443
+elb_name: "{{ cluster_name }}-etcd"

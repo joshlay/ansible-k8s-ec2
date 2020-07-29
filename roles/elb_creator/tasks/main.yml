@@ -7,7 +7,7 @@
   delegate_to: localhost
   run_once: true
   ec2_elb_lb:
-    name: "{{ subnet_id }}-k8s-vip"
+    name: "{{ elb_name }}"
     profile: "{{ aws_profile }}"
     state: present
     region: "{{ region }}"
