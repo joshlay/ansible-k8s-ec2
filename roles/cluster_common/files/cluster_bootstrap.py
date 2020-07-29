@@ -32,16 +32,19 @@ class etcd_helper(object):
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
         my_asg = self.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[my_asg_name])
         if len(my_asg['AutoScalingGroups']) > 0:
+            peer_ips = []
             peer_ids = [ instance['InstanceId'] for instance in my_asg['AutoScalingGroups'][0]['Instances'] ]    
             peers = self.ec2.describe_instances(InstanceIds=peer_ids)
-            peer_ips = [ peer['PrivateIpAddress'] for peer in peers['Reservations'][0]['Instances'] ]
+            for reservation in peers['Reservations']:
+                for peer in reservation['Instances']:
+                    peer_ips.append(f"{peer['PrivateDnsName']}=https://{peer['PrivateDnsName']}:2380")
             return peer_ips
         else:
             print("Instance is not a member of an autoscaling group!  This script is not useful here.")
             sys.exit(1)
     def get_initial_cluster_string(self):
         peer_ips = self.get_autoscaling_peer_ips()
-        initial_cluster = ','.join([ f"https://{ ip }:2380" for ip in peer_ips ])
+        initial_cluster = ','.join(peer_ips)
         return initial_cluster
     def find_load_balancer(self, role):
         if role in ['etcd', 'k8s']:
