@@ -13,6 +13,7 @@ runcmd:
   - ['kubeadm', 'init', 'phase', 'certs', 'etcd-server']
   - ['kubeadm', 'init', 'phase', 'certs', 'etcd-peer']
   - ['kubeadm', 'init', 'phase', 'certs', 'etcd-healthcheck-client']
+  - ['/usr/local/bin/cluster_bootstrap.py']
 users:
   - name: valentine
     groups: wheel
