@@ -10,6 +10,9 @@ write_files:
     path: /etc/systemd/system/kubelet.service.d/manifest.conf
 runcmd:
   - ['systemctl', 'daemon-reload']
+  - ['kubeadm', 'init', 'phase', 'certs', 'etcd-server']
+  - ['kubeadm', 'init', 'phase', 'certs', 'etcd-peer']
+  - ['kubeadm', 'init', 'phase', 'certs', 'etcd-healthcheck-client']
 users:
   - name: valentine
     groups: wheel
