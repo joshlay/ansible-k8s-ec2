@@ -14,13 +14,13 @@ class etcd_helper(object):
         r = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document')
         if r.ok:
             self.i = json.loads(r.content)
-            self.i['hostname'] = os.getenv('HOSTNAME')
         else:
             print("unable to retrieve instance metadata, exiting")
             sys.exit(1)
         self.session = Session(region_name=self.i['region'])
         self.autoscaling = self.session.client('autoscaling')
         self.ec2 = self.session.client('ec2')
+        self.i['hostname'] = self.ec2.describe_instances(InstanceIds=[self.i['instanceId']])['Reservations'][0]['Instances'][0]['PrivateDnsName']
         self.elb = self.session.client('elb')
         self.tags = {}
         rawtags = self.ec2.describe_tags(DryRun=False, Filters=[ { 'Name': 'resource-id', 'Values': [self.i["instanceId"]]} ] )
