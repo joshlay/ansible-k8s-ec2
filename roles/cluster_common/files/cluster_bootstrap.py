@@ -6,6 +6,7 @@ import sys
 from boto3.session import Session
 from jinja2 import Template
 import subprocess
+from etcd3 import Etcd3Client
 
 metaurl='http://169.254.169.254/latest/meta-data/'
 
@@ -27,25 +28,50 @@ class etcd_helper(object):
         for tag in rawtags['Tags']:
             self.tags[tag['Key']] = tag['Value']
         self.cluster = self.tags['KubernetesCluster']
-    def get_autoscaling_peer_ips(self):
+        self.peer_ids = self.get_asg_member_instances()
+        self.peer_names = self.get_asg_instance_dns_names()
+    def get_asg_member_instances(self):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
         my_asg = self.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[my_asg_name])
         if len(my_asg['AutoScalingGroups']) > 0:
-            peer_ips = []
             peer_ids = [ instance['InstanceId'] for instance in my_asg['AutoScalingGroups'][0]['Instances'] ]    
-            peers = self.ec2.describe_instances(InstanceIds=peer_ids)
-            for reservation in peers['Reservations']:
-                for peer in reservation['Instances']:
-                    peer_ips.append(f"{peer['PrivateDnsName']}=https://{peer['PrivateDnsName']}:2380")
-            return peer_ips
         else:
             print("Instance is not a member of an autoscaling group!  This script is not useful here.")
             sys.exit(1)
+        return peer_ids
+    def get_asg_instance_dns_names(self):
+        peers = self.ec2.describe_instances(InstanceIds=self.peer_ids)
+        peer_names = []
+        for reservation in peers['Reservations']:
+            for peer in reservation['Instances']:
+                peer_names.append(peer['PrivateDnsName'])
+                
+        return peer_names
     def get_initial_cluster_string(self):
-        peer_ips = self.get_autoscaling_peer_ips()
-        initial_cluster = ','.join(peer_ips)
-        return initial_cluster
+        string = ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
+        return string
+    def get_cluster_state(self):
+        peers = self.get_asg_instance_dns_names()
+        peers_checked = 0
+        for peer in peers:
+            try:
+                client = Etcd3Client(
+                    host=peer,
+                    port=2379, ca_cert='/etc/kubernetes/pki/etcd/ca.crt',
+                    cert_key='/etc/kubernetes/pki/etcd/peer.key',
+                    cert_cert='/etc/kubernetes/pki/etcd/peer.crt'
+                    )
+                s = client.status()
+                if s:
+                    return 'existing'
+                else:
+                    continue
+            except:
+                 if peers_checked < len(peers):
+                    continue
+                 else:
+                     return 'new'
     def find_load_balancer(self, role):
         if role in ['etcd', 'k8s']:
             elb_name = f"{self.cluster}-{role}"
@@ -68,6 +94,7 @@ class etcd_helper(object):
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
           initial_cluster = self.get_initial_cluster_string(),
+          cluster_state = self.get_cluster_state()
           )
         return kubeconfig
     def write_manifest(self):
