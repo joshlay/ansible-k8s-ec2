@@ -48,8 +48,11 @@ class etcd_helper(object):
                 peer_names.append(peer['PrivateDnsName'])
                 
         return peer_names
-    def get_initial_cluster_string(self):
-        string = ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
+    def get_initial_cluster_string(self, omit=None):
+        cluster_hosts = self.peer_names.copy()
+        if omit:
+            cluster_hosts.remove(omit)
+        string = ','.join([ f"{ host }=https://{ host }:2380" for host in cluster_hosts ])
         return string
     def get_cluster_state(self):
         peers = self.get_asg_instance_dns_names()
@@ -90,10 +93,14 @@ class etcd_helper(object):
         t = f.read()
         f.close()
         template = Template(t)
+        if self.get_cluster_state() == "existing":
+            omit = self.i['instanceId']
+        else:
+            omit = None
         kubeconfig = template.render(
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
-          initial_cluster = self.get_initial_cluster_string(),
+          initial_cluster = self.get_initial_cluster_string(omit),
           cluster_state = self.get_cluster_state()
           )
         return kubeconfig
