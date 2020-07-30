@@ -30,6 +30,11 @@ class etcd_helper(object):
         self.cluster = self.tags['KubernetesCluster']
         self.peer_ids = self.get_asg_member_instances()
         self.peer_names = self.get_asg_instance_dns_names()
+        client = self.get_etcd_client()
+        if client:
+            self.get_cluster_state = "existing"
+        else: 
+            self.get_cluster_state = "new"
     def get_asg_member_instances(self):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
@@ -48,13 +53,10 @@ class etcd_helper(object):
                 peer_names.append(peer['PrivateDnsName'])
                 
         return peer_names
-    def get_initial_cluster_string(self, omit=None):
-        cluster_hosts = self.peer_names.copy()
-        if omit:
-            cluster_hosts.remove(omit)
-        string = ','.join([ f"{ host }=https://{ host }:2380" for host in cluster_hosts ])
+    def get_initial_cluster_string(self, hosts):
+        string = ','.join([ f"{ host }=https://{ host }:2380" for host in hosts ])
         return string
-    def get_cluster_state(self):
+    def get_etcd_client(self)
         peers = self.get_asg_instance_dns_names()
         peers_checked = 0
         for peer in peers:
@@ -66,15 +68,12 @@ class etcd_helper(object):
                     cert_cert='/etc/kubernetes/pki/etcd/peer.crt'
                     )
                 s = client.status()
-                if s:
-                    return 'existing'
-                else:
-                    continue
+                return client
             except:
-                 if peers_checked < len(peers):
-                    continue
-                 else:
-                     return 'new'
+                if peers_checked < len(peers):
+                     continue
+            else:
+                return None
     def find_load_balancer(self, role):
         if role in ['etcd', 'k8s']:
             elb_name = f"{self.cluster}-{role}"
