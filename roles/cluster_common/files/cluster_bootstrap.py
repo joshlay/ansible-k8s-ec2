@@ -33,6 +33,7 @@ class etcd_helper(object):
         client = self.get_etcd_client()
         if client:
             self.get_cluster_state = "existing"
+            self.etcd_client = client
         else: 
             self.get_cluster_state = "new"
     def get_asg_member_instances(self):
@@ -53,11 +54,18 @@ class etcd_helper(object):
                 peer_names.append(peer['PrivateDnsName'])
                 
         return peer_names
-    def get_initial_cluster_string(self, hosts):
-        string = ','.join([ f"{ host }=https://{ host }:2380" for host in hosts ])
-        return string
-    def get_etcd_client(self)
-        peers = self.get_asg_instance_dns_names()
+    def get_initial_cluster_string(self):
+        hosts = []
+        if self.get_cluster_state == "existing":
+            for member in self.client.members:
+                member_string = f"{member.name}=https://{member.peer_urls[0]}:2380"
+                hosts.append(member_string)
+            return ','.join(member_string)
+        elif self.get_cluster_state == "new":
+            return ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
+            
+    def get_etcd_client(self):
+        peers = self.peer_names
         peers_checked = 0
         for peer in peers:
             try:
@@ -92,15 +100,11 @@ class etcd_helper(object):
         t = f.read()
         f.close()
         template = Template(t)
-        if self.get_cluster_state() == "existing":
-            omit = self.i['instanceId']
-        else:
-            omit = None
         kubeconfig = template.render(
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
-          initial_cluster = self.get_initial_cluster_string(omit),
-          cluster_state = self.get_cluster_state()
+          initial_cluster = self.get_initial_cluster_string(),
+          cluster_state = self.get_cluster_state
           )
         return kubeconfig
     def write_manifest(self):
