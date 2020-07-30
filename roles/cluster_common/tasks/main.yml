@@ -23,6 +23,13 @@
     state: present
     extra_args: "--user"
   when: ( pip_extra_modules is defined )
+- name: install etcd3 python module
+  become: true
+  pip:
+    name: etcd
+    state: present
+    extra_args: "--user"
+ 
 - name: create docker service dropin dir
   become: true
   file:

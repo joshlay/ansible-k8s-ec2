@@ -1,5 +1,6 @@
 - include_tasks: cert_provision.yml
 - name: update packages
+  become: true
   yum:
     name: "*"
     state: latest
