@@ -125,7 +125,7 @@ class etcd_helper(object):
         m.close()
     def add_member(self):
         try:
-            new_member = self.etcd_client.add_member([f"{self.i['hostname']}=https://{self.i['hostname']}:2380"])
+            new_member = self.etcd_client.add_member([f"https://{self.i['hostname']}:2380"])
         except:
             print("failed to add member to cluster")
             sys.exit(1)
