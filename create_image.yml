@@ -27,3 +27,19 @@
         apply:
           tags: ['image']
       tags: ['image']
+    - name: destroy the instance
+      delegate_to: localhost
+      ec2_instance: 
+        instance_role: kube_master
+        state: absent
+        profile: "{{ aws_profile }}"
+        image_id: "{{ image_id }}"
+        instance_type: "{{ instance_type }}"
+        key_name: "{{ ssh_key.aws_label }}"
+        name: "{{ inventory_hostname }}"
+        region: "{{ region }}"
+        tags: "{{ { 'kubernetes.io/cluster/%s' % cluster_name: 'fancy', 'KubernetesCluster': cluster_name } }}"
+        user_data: "{{ user_data | default(omit) }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+      register: instances
+
