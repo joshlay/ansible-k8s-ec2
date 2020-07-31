@@ -77,7 +77,6 @@
   template: 
     src: kubeadm-config.yaml.j2
     dest: "/home/{{ ansible_user }}/kubeadm-config.yaml.j2"
-- include: kube_ca.yml
 - name: copy helper script
   become: true
   copy:
