@@ -36,6 +36,7 @@ class etcd_helper(object):
             self.etcd_client = client
         else: 
             self.get_cluster_state = "new"
+        self.member_string = "{self.i['hostname']}=https://{self.i['hostname']}:2380"
     def get_asg_member_instances(self):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
@@ -60,7 +61,8 @@ class etcd_helper(object):
             for member in self.etcd_client.members:
                 member_string = f"{member.name}={member.peer_urls[0]}"
                 hosts.append(member_string)
-            hosts.append(f"{self.i['hostname']}=https://{self.i['hostname']}:2380")
+            if self.member_string not in hosts:
+                hosts.append(self.member_string)
             return ','.join(hosts)
         elif self.get_cluster_state == "new":
             return ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
