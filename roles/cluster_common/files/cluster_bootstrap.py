@@ -57,10 +57,11 @@ class etcd_helper(object):
     def get_initial_cluster_string(self):
         hosts = []
         if self.get_cluster_state == "existing":
-            for member in self.client.members:
-                member_string = f"{member.name}=https://{member.peer_urls[0]}:2380"
+            for member in self.etcd_client.members:
+                member_string = f"{member.name}={member.peer_urls[0]}"
                 hosts.append(member_string)
-            return ','.join(member_string)
+            hosts.append(f"{self.i['hostname']}=https://{self.i['hostname']}:2380")
+            return ','.join(hosts)
         elif self.get_cluster_state == "new":
             return ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
             
@@ -120,9 +121,18 @@ class etcd_helper(object):
         m = open('/tmp/kubeconfig.yaml', 'w')
         mm = m.write(kubeconfig)
         m.close()
+    def add_member(self):
+        try:
+            new_member = self.etcd_client.add_member([f"{self.i['hostname']}=https://{self.i['hostname']}:2380"])
+        except:
+            print("failed to add member to cluster")
+            sys.exit(1)
+
     def main(self):
         self.write_kubeconfig()
         self.write_manifest()
+        if self.get_cluster_state == "existing":
+            self.add_member()
 
 if __name__ == '__main__':
     print("helping")
