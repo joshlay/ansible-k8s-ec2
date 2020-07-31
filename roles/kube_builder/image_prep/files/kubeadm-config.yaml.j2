@@ -1,5 +1,5 @@
 ---
-apiVersion: kubeadm.k8s.io/{{ kube_api_version }}
+apiVersion: kubeadm.k8s.io/v1beta2
 kind: InitConfiguration
 {% if supply_join_tokens is defined %}
 bootstrapTokens:
