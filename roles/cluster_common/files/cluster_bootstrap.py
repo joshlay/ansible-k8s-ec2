@@ -32,10 +32,10 @@ class etcd_helper(object):
         self.peer_names = self.get_asg_instance_dns_names()
         client = self.get_etcd_client()
         if client:
-            self.get_cluster_state = "existing"
+            self.get_etcd_cluster_state = "existing"
             self.etcd_client = client
         else: 
-            self.get_cluster_state = "new"
+            self.get_etcd_cluster_state = "new"
         self.member_string = f"{self.i['hostname']}=https://{self.i['hostname']}:2380"
     def get_asg_member_instances(self):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
@@ -57,14 +57,14 @@ class etcd_helper(object):
         return peer_names
     def get_initial_cluster_string(self):
         hosts = []
-        if self.get_cluster_state == "existing":
+        if self.get_etcd_cluster_state == "existing":
             for member in self.etcd_client.members:
                 member_string = f"{member.name}={member.peer_urls[0]}"
                 hosts.append(member_string)
             if self.member_string not in hosts:
                 hosts.append(self.member_string)
             return ','.join(hosts)
-        elif self.get_cluster_state == "new":
+        elif self.get_etcd_cluster_state == "new":
             return ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
             
     def get_etcd_client(self):
@@ -107,10 +107,10 @@ class etcd_helper(object):
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
           initial_cluster = self.get_initial_cluster_string(),
-          cluster_state = self.get_cluster_state
+          cluster_state = self.get_etcd_cluster_state
           )
         return kubeconfig
-    def write_manifest(self):
+    def write_etcd_manifest(self):
         print("rendering manifest")
         manifest_invocation = subprocess.check_call('kubeadm init phase etcd local --config /tmp/kubeconfig.yaml'.split())
         pass
@@ -118,7 +118,7 @@ class etcd_helper(object):
         print("creating certs")
         create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
         pass
-    def write_kubeconfig(self):
+    def write_etcd_kubeconfig(self):
         kubeconfig = self.render_kubeconfig()
         m = open('/tmp/kubeconfig.yaml', 'w')
         mm = m.write(kubeconfig)
@@ -131,14 +131,22 @@ class etcd_helper(object):
             sys.exit(1)
 
     def main(self):
-        self.write_kubeconfig()
-        self.write_manifest()
-        if self.get_cluster_state == "existing":
-            self.add_member()
+        mode = sys.argv[2]
+        if mode == "etcd":
+            print("helping with etcd cluster")
+            self.write_etcd_kubeconfig()
+            self.write_etcd_manifest()
+            if self.get_etcd_cluster_state == "existing":
+                self.add_member()
+        elif mode == "master":
+            print("helping with kube master node")
+        elif mode == "worker":
+            print("helping with kube worker node")
+        else:
+            print("Mode of operation not defined! Choose from 'etcd', 'master', or 'worker'")
 
 if __name__ == '__main__':
     print("helping")
-    helper = etcd_helper()
     helper.main()
 else:
     print(__name__)
