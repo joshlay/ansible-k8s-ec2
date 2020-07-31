@@ -49,7 +49,7 @@ etcd:
         certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
         keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
 networking:
-  podSubnet: "{{ pod_network }}"
+  podSubnet: 192.168.0.0/16
   dnsDomain: "{{ cluster_domain }}"
   serviceSubnet: 10.96.0.0/12
 apiServer:
