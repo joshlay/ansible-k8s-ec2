@@ -36,7 +36,7 @@ class etcd_helper(object):
             self.etcd_client = client
         else: 
             self.get_cluster_state = "new"
-        self.member_string = "{self.i['hostname']}=https://{self.i['hostname']}:2380"
+        self.member_string = f"{self.i['hostname']}=https://{self.i['hostname']}:2380"
     def get_asg_member_instances(self):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
