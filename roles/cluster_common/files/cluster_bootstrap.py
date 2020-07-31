@@ -12,6 +12,7 @@ metaurl='http://169.254.169.254/latest/meta-data/'
 
 class etcd_helper(object):
     def __init__(self):
+        self.mode = sys.argv[2]
         r = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document')
         if r.ok:
             self.i = json.loads(r.content)
@@ -129,18 +130,32 @@ class etcd_helper(object):
         except:
             print("failed to add member to cluster")
             sys.exit(1)
+    def get_etcd_client_urls(self):
+        pass
+    def render_node_kubeconfig(self):
+        f = open('/usr/local/share/k8s_autoscale/kubeadm-config.yaml.j2')
+        t = f.read()
+        f.close()
+        template = Template(t)
+        kubeconfig = template.render(
+          hostname = self.i['hostname'],
+          private_ip = self.i['privateIp'],
+          provider_id = f"aws://{{ self.i['availabilityZone'] }}/{ self.i['instanceId'] }",
+          role = self.mode,
+          cluster_name = self.cluster,
+          )
+        return kubeconfig
 
     def main(self):
-        mode = sys.argv[2]
-        if mode == "etcd":
+        if self.mode == "etcd":
             print("helping with etcd cluster")
             self.write_etcd_kubeconfig()
             self.write_etcd_manifest()
             if self.get_etcd_cluster_state == "existing":
                 self.add_etcd_member()
-        elif mode == "master":
+        elif self.mode == "master":
             print("helping with kube master node")
-        elif mode == "worker":
+        elif self.mode == "worker":
             print("helping with kube worker node")
         else:
             print("Mode of operation not defined! Choose from 'etcd', 'master', or 'worker'")
