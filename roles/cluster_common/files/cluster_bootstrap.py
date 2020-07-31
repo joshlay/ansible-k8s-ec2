@@ -98,7 +98,7 @@ class etcd_helper(object):
             sys.exit(1)
         else:
             return balancers[0]['DNSName']
-    def render_kubeconfig(self):
+    def render_etcd_kubeconfig(self):
         f = open('/usr/local/share/etcd_autoscale/etcd_kubeconfig.yaml.j2')
         t = f.read()
         f.close()
@@ -119,11 +119,11 @@ class etcd_helper(object):
         create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
         pass
     def write_etcd_kubeconfig(self):
-        kubeconfig = self.render_kubeconfig()
+        kubeconfig = self.render_etcd_kubeconfig()
         m = open('/tmp/kubeconfig.yaml', 'w')
         mm = m.write(kubeconfig)
         m.close()
-    def add_member(self):
+    def add_etcd_member(self):
         try:
             new_member = self.etcd_client.add_member([f"https://{self.i['hostname']}:2380"])
         except:
@@ -137,7 +137,7 @@ class etcd_helper(object):
             self.write_etcd_kubeconfig()
             self.write_etcd_manifest()
             if self.get_etcd_cluster_state == "existing":
-                self.add_member()
+                self.add_etcd_member()
         elif mode == "master":
             print("helping with kube master node")
         elif mode == "worker":
