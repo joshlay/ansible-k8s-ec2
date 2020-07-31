@@ -55,6 +55,6 @@
     max_size: 3
     desired_capacity: 3
     region: "{{ region }}"
-    replace_all_instances: yes
+    replace_all_instances: no
     vpc_zone_identifier:
       - "{{ subnet_id }}"
