@@ -16,8 +16,8 @@ localAPIEndpoint:
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
-  name: {{ ansible_nodename }}
-  {% if default_taint is defined -%}
+  name: {{ hostname }}
+  {% if role == "master" -%}
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
@@ -42,8 +42,8 @@ certificatesDir: /etc/kubernetes/pki
 etcd:
     external:
         endpoints:
-        {% for host in groups['ec2-etcd'] -%}
-        - https://{{ hostvars.get(host).get('ansible_nodename') }}:2379
+        {% for url in etcd_server_urls -%}
+        - {{ url }}
         {% endfor -%}
         caFile: /etc/kubernetes/pki/etcd/ca.crt
         certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt

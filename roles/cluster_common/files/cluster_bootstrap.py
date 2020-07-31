@@ -131,7 +131,11 @@ class etcd_helper(object):
             print("failed to add member to cluster")
             sys.exit(1)
     def get_etcd_client_urls(self):
-        pass
+        client_urls = []
+        for member in self.etcd_client.members:
+            client_urls += member.client_urls
+        return client_urls
+
     def render_node_kubeconfig(self):
         f = open('/usr/local/share/k8s_autoscale/kubeadm-config.yaml.j2')
         t = f.read()
@@ -143,6 +147,8 @@ class etcd_helper(object):
           provider_id = f"aws://{{ self.i['availabilityZone'] }}/{ self.i['instanceId'] }",
           role = self.mode,
           cluster_name = self.cluster,
+          etcd_server_urls = self.get_etcd_client_urls()
+          
           )
         return kubeconfig
 
