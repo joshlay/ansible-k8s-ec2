@@ -14,22 +14,22 @@
          ]
       }   
     profile: "{{ aws_profile }}"
-    name: etcd_node
+    name: k8s_master_node
     state: present
     region: "{{ region }}"
     purge_policies: yes 
     create_instance_profile: yes 
-  register: etcd_role
-- name: create iam policy for etcd nodes
+  register: kube_master_role
+- name: create iam policy for masters
   run_once: true
   delegate_to: localhost
   iam_policy:
     profile: "{{ aws_profile }}"
     region: "{{ region }}"
-    iam_name: etcd_node
+    iam_name: k8s_master_node
     iam_type: role
     policy_name: 
-    policy_json: "{{ lookup('template', 'etcd_iam_policy.json') }}"
+    policy_json: "{{ lookup('template', 'kube_master_iam_policy.json') }}"
     state: present
 
       

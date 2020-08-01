@@ -1,8 +1,8 @@
-- name: creating ELB backend node list from ansible_play_batch
-  set_fact:
-    instance_list: "{{ instance_list | default([]) + [hostvars[item]['instance_id']] }}"
-  with_items: "{{ ansible_play_batch }}"
-- debug: var=instance_list
+#- name: creating ELB backend node list from ansible_play_batch
+#  set_fact:
+#    instance_list: "{{ instance_list | default([]) + [hostvars[item]['instance_id']] }}"
+#  with_items: "{{ ansible_play_batch }}"
+#- debug: var=instance_list
 - name: create elb
   delegate_to: localhost
   run_once: true

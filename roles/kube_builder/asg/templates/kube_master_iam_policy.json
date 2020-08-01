@@ -6,14 +6,17 @@
                 "autoscaling:DescribeAutoScalingGroups",
                 "autoscaling:DescribeAutoScalingInstances",
                 "autoscaling:DescribeTags",
+                "autoscaling:DescribeLaunchConfigurations",
                 "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:SetDesiredCapacity",
+                "autoscaling:TerminateInstanceInAutoScalingGroup",
+                "ec2:DescribeLaunchTemplateVersions",
                 "ec2:DescribeInstances",
                 "ec2:DescribeTags"
             ],
             "Resource": "*",
             "Effect": "Allow"
         },
-        {% if etcd_use_acm is defined %}
         {
           "Action": [
             "acm:AddTagsToCertificate",
@@ -30,10 +33,11 @@
           "Resource": "*",
           "Effect": "Allow"
         },
-        {% endif %}
         {
           "Action": [
             "elasticloadbalancing:DescribeLoadBalancers",
+            "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+            "elasticloadbalancing:RegisterInstancesWithLoadBalancer"
           ],
           "Resource": "*",
           "Effect": "Allow"

@@ -7,13 +7,12 @@
     filters:
       name: "{{ cluster_name }}-universal"
       tag:randomuser.org/hamburger: "true"
-      tag:randomuser.org/usage: "etcd"
   register: discovered_image
+- debug: var=discovered_image
 - set_fact:
-    replace_image: "{{ discovered_image.images[0].image_id }}"
-    replace_image_version: "{{ discovered_image.images[0].tags['randomuser.org/version'] }}"
+    replace_image: "{{ discovered_image.images[0].image_id | default(None) }}"
+    replace_image_version: "{{ discovered_image.images[0].tags['randomuser.org/version'] |default(omit) }}"
   when: discovered_image.images is defined
-- debug: var=replace_image_version
 - block:
   - name: deregister old image
     delegate_to: localhost
@@ -23,6 +22,7 @@
       image_id: "{{ replace_image | default(omit) }}"
       state: absent
       wait: yes
+    when: ( discovered_image | length < 0 )
   - name: capture image
     delegate_to: localhost
     ec2_ami:
@@ -33,7 +33,6 @@
       name: "{{ cluster_name }}-universal"
       tags:
         randomuser.org/hamburger: "true"
-        randomuser.org/usage: "etcd"
         randomuser.org/version: "{{ universal_image_version }}"
       wait: yes
     register: ec2_image

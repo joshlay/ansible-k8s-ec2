@@ -1,4 +1,4 @@
-- include_tasks: etcd_iam.yml
+- include_tasks: master_iam.yml
 - include_role:
     name: elb_creator
 - name: find image
@@ -11,41 +11,47 @@
       tag:randomuser.org/hamburger: "true"
       tag:randomuser.org/version: "{{ asg_image_version }}"
   register: latest_image
+- debug:
+    msg: "Fail here if no images match"
+  when: ( latest_image.images | length < 1 )
+- fail:
+  failed_when: ( latest_image.images | length < 1 )
 - debug: var=latest_image
 - set_fact:
     use_ami: "{{ latest_image.images[0].image_id }}"
 - name: purge old lc
   ec2_lc:
     profile: "{{ aws_profile }}"
-    name: "{{ cluster_name }}-etcd-launch"
+    name: "{{ cluster_name }}-master-launch"
     state: absent
 - name: define etcd launch config
   ec2_launch_template:
-    template_name: "{{ cluster_name }}-etcd-launch"
+    template_name: "{{ cluster_name }}-master-launch"
     region: "{{ region }}"
     profile: "{{ aws_profile }}"
     image_id: "{{ use_ami }}"
-    instance_type: "{{ etcd_launch.instance_type }}"
-    iam_instance_profile: etcd_node
+    instance_type: "{{ master_launch.instance_type }}"
+    iam_instance_profile: kube_master
     default_version: "latest"
     key_name: "{{ ssh_key.aws_label }}"
-    user_data: "{{ lookup('template', 'ec2_user_data.yml') |b64encode }}"
-    block_device_mappings: "{{ etcd_launch.volumes | default(omit) }}"
+    user_data: "{{ lookup('template', 'kube_master_user_data.yml') |b64encode }}"
+    block_device_mappings: "{{ master_launch.volumes | default(omit) }}"
     tags:
+      randomuser.org/usage: kube_master
       randomuser.org/launch_version: "{{ etcd_launch.version| default('0.2') }}"
       KubernetesCluster: "{{ cluster_name }}"
   register: lt
 - debug: var=lt
 
-- name: instantiate etcd autoscaling group
+- name: instantiate k8s autoscaling group
   ec2_asg:
     profile: "{{ aws_profile }}"
-    name: "{{ cluster_name }}-etcd"
+    name: "{{ cluster_name }}-k8s"
     default_cooldown: 300
     health_check_period: 300
     health_check_type: EC2
     launch_template:
-      launch_template_name: "{{ cluster_name }}-etcd-launch"
+      launch_template_name: "{{ cluster_name }}-master-launch"
       version: "$Latest"
     termination_policies: OldestLaunchConfiguration
     metrics_collection: no

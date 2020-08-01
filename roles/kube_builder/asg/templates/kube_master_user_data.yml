@@ -8,6 +8,7 @@ write_files:
 runcmd:
   - ['kubeadm', 'init', 'phase', 'certs', 'apiserver']
   - ['kubeadm', 'init', 'phase', 'certs', 'apiserver-kubelet-client']
+  - ['kubeadm', 'init', 'phase', 'certs', 'apiserver-etcd-client']
   - ['kubeadm', 'init', 'phase', 'certs', 'front-proxy-client']
   - ['/usr/local/bin/cluster_bootstrap.py', 'master']
 users:

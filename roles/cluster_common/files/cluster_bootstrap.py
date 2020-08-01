@@ -10,9 +10,9 @@ from etcd3 import Etcd3Client
 
 metaurl='http://169.254.169.254/latest/meta-data/'
 
-class etcd_helper(object):
+class cluster_helper(object):
     def __init__(self):
-        self.mode = sys.argv[2]
+        self.mode = sys.argv[1]
         r = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document')
         if r.ok:
             self.i = json.loads(r.content)
@@ -48,8 +48,8 @@ class etcd_helper(object):
             print("Instance is not a member of an autoscaling group!  This script is not useful here.")
             sys.exit(1)
         return peer_ids
-    def get_asg_instance_dns_names(self):
-        peers = self.ec2.describe_instances(InstanceIds=self.peer_ids)
+    def get_asg_instance_dns_names(self, instance_ids):
+        peers = self.ec2.describe_instances(instance_ids)
         peer_names = []
         for reservation in peers['Reservations']:
             for peer in reservation['Instances']:
@@ -68,10 +68,10 @@ class etcd_helper(object):
         elif self.get_etcd_cluster_state == "new":
             return ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
             
-    def get_etcd_client(self):
-        peers = self.peer_names
+    def get_etcd_client(self, hosts):
+        etcd_hosts = self.find_etcd_hosts()
         peers_checked = 0
-        for peer in peers:
+        for peer in etcd_hosts:
             try:
                 client = Etcd3Client(
                     host=peer,
@@ -86,6 +86,18 @@ class etcd_helper(object):
                      continue
             else:
                 return None
+    def find_etcd_hosts(self):
+        autoscale_groups = h.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[f'{h.cluster}-etcd'])
+        if ( autoscale_groups['ResponseMetadata']['HTTPStatusCode'] == 200 ) and len(autoscale_groups['AutoScalingGroups'] == 1 ):
+            etcd_asg = autoscale_groups['AutoScalingGroups'][0]
+            etcd_instances = [ instance['InstanceId'] for instance in etcd_asg['Instances'] ]
+            etcd_hosts = get_asg_instance_dns_names(etcd_instances)
+            return etcd_hosts
+
+        else:
+            print("could not find match for etcd asg, failed.")
+            sys.exit(1)
+        etcd_group
     def find_load_balancer(self, role):
         if role in ['etcd', 'k8s']:
             elb_name = f"{self.cluster}-{role}"
@@ -119,8 +131,7 @@ class etcd_helper(object):
         print("creating certs")
         create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
         pass
-    def write_etcd_kubeconfig(self):
-        kubeconfig = self.render_etcd_kubeconfig()
+    def write_tmp_kubeconfig(self, kubeconfig):
         m = open('/tmp/kubeconfig.yaml', 'w')
         mm = m.write(kubeconfig)
         m.close()
@@ -135,7 +146,8 @@ class etcd_helper(object):
         for member in self.etcd_client.members:
             client_urls += member.client_urls
         return client_urls
-
+    def get_join_token(self):
+        return False
     def render_node_kubeconfig(self):
         f = open('/usr/local/share/k8s_autoscale/kubeadm-config.yaml.j2')
         t = f.read()
@@ -147,20 +159,25 @@ class etcd_helper(object):
           provider_id = f"aws://{{ self.i['availabilityZone'] }}/{ self.i['instanceId'] }",
           role = self.mode,
           cluster_name = self.cluster,
-          etcd_server_urls = self.get_etcd_client_urls()
-          
+          etcd_server_urls = self.get_etcd_client_urls(),
+          kube_vip = self.find_load_balancer(role='k8s'),
+          join_token = self.get_join_token()
           )
         return kubeconfig
 
     def main(self):
         if self.mode == "etcd":
             print("helping with etcd cluster")
-            self.write_etcd_kubeconfig()
+            kubeconfig = self.render_etcd_kubeconfig()
+            self.write_tmp_kubeconfig(kubeconfig)
             self.write_etcd_manifest()
             if self.get_etcd_cluster_state == "existing":
                 self.add_etcd_member()
         elif self.mode == "master":
             print("helping with kube master node")
+            kubeconfig = self.render_node_kubeconfig()
+            self.write_tmp_kubeconfig(kubeconfig)
+
         elif self.mode == "worker":
             print("helping with kube worker node")
         else:
@@ -168,6 +185,7 @@ class etcd_helper(object):
 
 if __name__ == '__main__':
     print("helping")
+    helper = cluster_helper()
     helper.main()
 else:
     print(__name__)
