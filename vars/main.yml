@@ -1,4 +1,4 @@
-universal_image_version: "24"
+universal_image_version: "25"
 launch_configs:
   small_novolume:
     image_id: ami-051d77f438f689555

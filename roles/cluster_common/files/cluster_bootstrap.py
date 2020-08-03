@@ -30,8 +30,9 @@ class cluster_helper(object):
             self.tags[tag['Key']] = tag['Value']
         self.cluster = self.tags['KubernetesCluster']
         self.peer_ids = self.get_asg_member_instances()
-        self.peer_names = self.get_asg_instance_dns_names()
-        client = self.get_etcd_client()
+        self.peer_names = self.get_asg_instance_dns_names(self.peer_ids)
+        self.etcd_hosts = self.find_etcd_hosts()
+        client = self.get_etcd_client(self.etcd_hosts)
         if client:
             self.get_etcd_cluster_state = "existing"
             self.etcd_client = client
@@ -49,7 +50,7 @@ class cluster_helper(object):
             sys.exit(1)
         return peer_ids
     def get_asg_instance_dns_names(self, instance_ids):
-        peers = self.ec2.describe_instances(instance_ids)
+        peers = self.ec2.describe_instances(InstanceIds=instance_ids)
         peer_names = []
         for reservation in peers['Reservations']:
             for peer in reservation['Instances']:
@@ -82,16 +83,16 @@ class cluster_helper(object):
                 s = client.status()
                 return client
             except:
-                if peers_checked < len(peers):
+                if peers_checked < len(etcd_hosts):
                      continue
             else:
                 return None
     def find_etcd_hosts(self):
-        autoscale_groups = h.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[f'{h.cluster}-etcd'])
-        if ( autoscale_groups['ResponseMetadata']['HTTPStatusCode'] == 200 ) and len(autoscale_groups['AutoScalingGroups'] == 1 ):
+        autoscale_groups = self.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[f'{self.cluster}-etcd'])
+        if ( autoscale_groups['ResponseMetadata']['HTTPStatusCode'] == 200 ) and ( len(autoscale_groups['AutoScalingGroups']) == 1 ):
             etcd_asg = autoscale_groups['AutoScalingGroups'][0]
             etcd_instances = [ instance['InstanceId'] for instance in etcd_asg['Instances'] ]
-            etcd_hosts = get_asg_instance_dns_names(etcd_instances)
+            etcd_hosts = self.get_asg_instance_dns_names(etcd_instances)
             return etcd_hosts
 
         else:
