@@ -10,7 +10,7 @@
   register: discovered_image
 - debug: var=discovered_image
 - set_fact:
-    replace_image: "{{ discovered_image.images[0].image_id | default(None) }}"
+    replace_image: "{{ discovered_image.images[0].image_id | default(omit) }}"
     replace_image_version: "{{ discovered_image.images[0].tags['randomuser.org/version'] |default(omit) }}"
   when: discovered_image.images is defined
 - block:
@@ -22,7 +22,7 @@
       image_id: "{{ replace_image | default(omit) }}"
       state: absent
       wait: yes
-    when: ( discovered_image | length < 0 )
+    when: ( replace_image is defined )
   - name: capture image
     delegate_to: localhost
     ec2_ami:

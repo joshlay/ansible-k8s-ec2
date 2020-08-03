@@ -1,13 +1,13 @@
 - name: generate ca certs
   become: true
   shell:  >
-    kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml phase certs ca
+    kubeadm init phase certs ca
     creates=/etc/kubernetes/pki/ca.key
   register: phase_certs_ca
 - name: generate front proxy cacert
   become: true
   shell:  >
-    kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml phase certs front-proxy-ca
+    kubeadm init phase certs front-proxy-ca
     creates=/etc/kubernetes/pki/front-proxy-ca.key
   register: phase_frontproxy_ca
 - name: kubeadm init phase certs sa
