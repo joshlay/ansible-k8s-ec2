@@ -10,10 +10,7 @@ write_files:
     path: /etc/systemd/system/kubelet.service.d/manifest.conf
 runcmd:
   - ['systemctl', 'daemon-reload']
-  - ['pip', 'install', 'etcd', '--user']
-  - ['kubeadm', 'init', 'phase', 'certs', 'etcd-server']
-  - ['kubeadm', 'init', 'phase', 'certs', 'etcd-peer']
-  - ['kubeadm', 'init', 'phase', 'certs', 'etcd-healthcheck-client']
+  - ['curl', 'https://raw.githubusercontent.com/immanetize/ansible-k8s-ec2/autoscaler/roles/cluster_common/files/cluster_bootstrap.py', '-o', '/usr/local/bin/cluster_bootstrap.py'
   - ['/usr/local/bin/cluster_bootstrap.py', 'etcd']
 users:
   - name: valentine

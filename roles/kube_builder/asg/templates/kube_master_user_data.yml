@@ -6,10 +6,7 @@ write_files:
          placeholder
     path: /etc/systemd/system/kubelet.service.d/manifest.conf
 runcmd:
-  - ['kubeadm', 'init', 'phase', 'certs', 'apiserver']
-  - ['kubeadm', 'init', 'phase', 'certs', 'apiserver-kubelet-client']
-  - ['kubeadm', 'init', 'phase', 'certs', 'apiserver-etcd-client']
-  - ['kubeadm', 'init', 'phase', 'certs', 'front-proxy-client']
+  - ['curl', 'https://raw.githubusercontent.com/immanetize/ansible-k8s-ec2/autoscaler/roles/cluster_common/files/cluster_bootstrap.py', '-o', '/usr/local/bin/cluster_bootstrap.py'
   - ['/usr/local/bin/cluster_bootstrap.py', 'master']
   - ['kubeadm', 'init', '--config', '/tmp/kubeconfig.yaml', '--upload-certs']
 users:

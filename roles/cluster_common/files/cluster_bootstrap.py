@@ -25,6 +25,7 @@ class cluster_helper(object):
         self.session = Session(region_name=self.i['region'])
         self.autoscaling = self.session.client('autoscaling')
         self.ec2 = self.session.client('ec2')
+        self.s3 = self.session.client('s3')
         self.i['hostname'] = self.ec2.describe_instances(InstanceIds=[self.i['instanceId']])['Reservations'][0]['Instances'][0]['PrivateDnsName']
         self.elb = self.session.client('elb')
         self.tags = {}
@@ -151,8 +152,39 @@ class cluster_helper(object):
         print("rendering manifest")
         manifest_invocation = subprocess.check_call('kubeadm init phase etcd local --config /tmp/kubeconfig.yaml'.split())
         pass
-    def create_certs(self):
-        print("creating certs")
+    def fetch_certs(self):
+        def get_cert(path):
+            try:
+                response = self.s3.get_object(
+                   Bucket=cluster_bucket,
+                   Key=path
+                   )
+             except:
+                 print("unable to get secrets from bucket, fail")
+                 sys.exit(1)
+            return response['Body']
+        def write_cert(cert, path, prefix)
+            m = open(f'{prefix}/{path}', 'w')
+            mm = m.write(cert)
+            m.close()
+
+        cert_paths = [
+            "etcd/ca.key",
+            "etcd/ca.crt",
+            "ca.key",
+            "ca.crt",
+            "front-proxy-ca.crt",
+            "front-proxy-ca.key",
+            "sa.pub",
+            "sa.key"
+            ]
+        path_prefix = "/etc/kubernetes/pki"
+        cluster_bucket = f"{self.cluster}-lockbox"
+        for path in cert_paths:
+            cert = get_cert(path)
+            write_cert(cert, path, path_prefix)
+
+        print(f"fetching certs from {cluster_bucket}")
         create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
         pass
     def write_tmp_kubeconfig(self, kubeconfig):
