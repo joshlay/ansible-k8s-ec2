@@ -35,7 +35,11 @@ class cluster_helper(object):
         self.peer_ids = self.get_asg_member_instances()
         self.peer_names = self.get_asg_instance_dns_names(self.peer_ids)
         self.etcd_hosts = self.find_etcd_hosts()
-        client = self.get_etcd_client(self.etcd_hosts)
+        if self.mode == 'etcd':
+            etcd_retries = 3
+        else:
+            etcd_retries = 30
+        client = self.get_etcd_client(retries=etcd_retries)
         if client:
             self.get_etcd_cluster_state = "existing"
             self.etcd_client = client
@@ -72,8 +76,10 @@ class cluster_helper(object):
         elif self.get_etcd_cluster_state == "new":
             return ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
             
-    def get_etcd_client(self, hosts):
+    def get_etcd_client(self, retries=1):
+        print(f"attempting to connect to etcd endpoint, {retries} attempts remaining.")
         peers_checked = 0
+        print(f'using client certs for mode {self.mode}')
         if self.mode == "etcd":
             key = '/etc/kubernetes/pki/etcd/peer.key'
             cert = '/etc/kubernetes/pki/etcd/peer.crt'
@@ -82,6 +88,7 @@ class cluster_helper(object):
             cert = '/etc/kubernetes/pki/apiserver-etcd-client.crt'
         for peer in self.etcd_hosts:
             try:
+                print(f'attempting connection to { peer }')
                 client = Etcd3Client(
                     host=peer,
                     port=2379, ca_cert='/etc/kubernetes/pki/etcd/ca.crt',
@@ -91,10 +98,18 @@ class cluster_helper(object):
                 s = client.status()
                 return client
             except:
-                if peers_checked < len(etcd_hosts):
+                if peers_checked < len(self.etcd_hosts):
                      continue
             else:
-                return None
+                retries -= 1
+                if retries > 0:
+                    print("Unable to find etcd server, will retry...")
+                    sleep(5)
+                    client = get_etcd_client(retries=retries)
+                    return client
+                else:
+                    print("No etcd connection discovered! is the cluster new?")
+                    return None
     def find_etcd_hosts(self):
         autoscale_groups = self.autoscaling.describe_auto_scaling_groups(AutoScalingGroupNames=[f'{self.cluster}-etcd'])
         if ( autoscale_groups['ResponseMetadata']['HTTPStatusCode'] == 200 ) and ( len(autoscale_groups['AutoScalingGroups']) == 1 ):
