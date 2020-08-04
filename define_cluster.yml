@@ -1,0 +1,33 @@
+- name: persist some cluster secrets in s3
+  vars_files: vars/main.yml
+  hosts: localhost
+  tasks:
+    - name: find the cluster image
+      ec2_ami_info:
+        profile: "{{ aws_profile }}"
+        owner: "self"
+        region: "{{ region }}"
+        filters:
+          name: "{{ cluster_name }}-universal"
+          tag:randomuser.org/hamburger: "true"
+      register: matching_images
+    - set_fact:
+        image_id: "{{ matching_images['images'][0]['image_id'] }}"
+        instance_name: "{{ cluster_name }}_provisioning"
+    - include_role:
+        name: ec2_bootstrap
+    - debug: var=instances
+    - name: add the host
+      add_host:
+        name: "{{ instance_name }}"
+        ansible_host: "{{ instances.instances[0]['private_ip_address'] }}"
+        ansible_ssh_common_args: "{{ ansible_ssh_common_args + ' -o StrictHostKeyChecking=No ' }}"
+        ansible_ssh_private_key_file:  "{{ ssh_key.local_path }}"
+        ansible_python_interpreter: "{{ interpreter }}"
+- name: do stuff to the host
+  vars_files: vars/main.yml
+  hosts: "{{ cluster_name }}_provisioning"
+  tasks:
+    - setup:
+    - include_role:
+        name: cluster_secrets
