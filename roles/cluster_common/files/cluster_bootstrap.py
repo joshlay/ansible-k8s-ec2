@@ -159,11 +159,11 @@ class cluster_helper(object):
                    Bucket=cluster_bucket,
                    Key=path
                    )
-             except:
-                 print("unable to get secrets from bucket, fail")
-                 sys.exit(1)
+            except:
+                print("unable to get secrets from bucket, fail")
+                sys.exit(1)
             return response['Body']
-        def write_cert(cert, path, prefix)
+        def write_cert(cert, path, prefix):
             m = open(f'{prefix}/{path}', 'w')
             mm = m.write(cert)
             m.close()
