@@ -48,7 +48,7 @@
             "s3:GetObject",
             "s3:DeleteObject"
           ].
-          "Resource": ["arn:aws:s3:::{{ cluster_name }}-lockbox"],
+          "Resource": ["arn:aws:s3:::{{ cluster_name }}-lockbox/*"],
           "Effect": "Allow"
         },
         {

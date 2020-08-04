@@ -20,6 +20,9 @@
     purge_policies: yes 
     create_instance_profile: yes 
   register: kube_master_role
+- set_fact:
+    policy_json: "{{ lookup('template', 'kube_master_iam_policy.json') }}"
+- debug: var=policy_json
 - name: create iam policy for masters
   run_once: true
   delegate_to: localhost
@@ -29,7 +32,7 @@
     iam_name: k8s_master_node
     iam_type: role
     policy_name: 
-    policy_json: "{{ lookup('template', 'kube_master_iam_policy.json') }}"
+    policy_json: "{{ policy_json }}"
     state: present
 
       

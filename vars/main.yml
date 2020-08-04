@@ -41,3 +41,11 @@ launch_configs:
         delete_on_termination: true
         type: sc1
 subnet_id: subnet-b86d64da
+ssh_key:
+  aws_label: aws_id_rsa
+  local_path: ~/.ssh/aws_id_rsa
+av_zone: us-west-2a
+interpreter: /usr/bin/python3
+cluster_name: cluster0
+aws_profile: personal
+region: us-west-2
