@@ -33,6 +33,7 @@
     block_device_mappings: "{{ etcd_launch.volumes | default(omit) }}"
     tags:
       randomuser.org/launch_version: "{{ etcd_launch.version| default('0.2') }}"
+      randomuser.org/usage: etcd
       KubernetesCluster: "{{ cluster_name }}"
   register: lt
 - debug: var=lt
