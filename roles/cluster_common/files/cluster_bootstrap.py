@@ -12,7 +12,10 @@ metaurl='http://169.254.169.254/latest/meta-data/'
 
 class cluster_helper(object):
     def __init__(self):
-        self.mode = sys.argv[1]
+        try:
+            self.mode = sys.argv[1]
+        except:
+            self.mode = None
         r = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document')
         if r.ok:
             self.i = json.loads(r.content)
@@ -70,15 +73,20 @@ class cluster_helper(object):
             return ','.join([ f"{ host }=https://{ host }:2380" for host in self.peer_names ])
             
     def get_etcd_client(self, hosts):
-        etcd_hosts = self.find_etcd_hosts()
         peers_checked = 0
-        for peer in etcd_hosts:
+        if self.mode == "etcd":
+            key = '/etc/kubernetes/pki/etcd/peer.key'
+            cert = '/etc/kubernetes/pki/etcd/peer.crt'
+        else:
+            key = '/etc/kubernetes/pki/apiserver-etcd-client.key'
+            cert = '/etc/kubernetes/pki/apiserver-etcd-client.crt'
+        for peer in self.etcd_hosts:
             try:
                 client = Etcd3Client(
                     host=peer,
                     port=2379, ca_cert='/etc/kubernetes/pki/etcd/ca.crt',
-                    cert_key='/etc/kubernetes/pki/etcd/peer.key',
-                    cert_cert='/etc/kubernetes/pki/etcd/peer.crt'
+                    cert_key=key,
+                    cert_cert=cert,
                     )
                 s = client.status()
                 return client
@@ -157,7 +165,7 @@ class cluster_helper(object):
         kubeconfig = template.render(
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
-          provider_id = f"aws://{{ self.i['availabilityZone'] }}/{ self.i['instanceId'] }",
+          provider_id = f"aws://{ self.i['availabilityZone'] }/{ self.i['instanceId'] }",
           role = self.mode,
           cluster_name = self.cluster,
           etcd_server_urls = self.get_etcd_client_urls(),

@@ -11,6 +11,7 @@ runcmd:
   - ['kubeadm', 'init', 'phase', 'certs', 'apiserver-etcd-client']
   - ['kubeadm', 'init', 'phase', 'certs', 'front-proxy-client']
   - ['/usr/local/bin/cluster_bootstrap.py', 'master']
+  - ['kubeadm', 'init', '--config', '/tmp/kubeconfig.yaml', '--upload-certs']
 users:
   - name: valentine
     groups: wheel
