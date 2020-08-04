@@ -1,0 +1,37 @@
+  # reset results variable from last pass
+- set_fact:
+    bucket_files:
+    bucket_results: "{{ [] }}"
+    basenames: "{{ [] }}"
+- name: get file basenames
+  set_fact:
+    basenames: "{{ basenames + [ item.split('/')[-1] ] }}"
+  with_items: "{{ secret.creates }}"
+- name: check for files in bucket
+  aws_s3:
+    bucket: "{{ bucket }}"
+    mode: geturl
+    object: "{{ secret.bucket_path }}/{{ item }}"
+  with_items: "{{ basenames }}"
+  register: bucket_files
+  failed_when: false
+  changed_when: false
+- debug: var=bucket_files
+- set_fact:
+    bucket_results:  "{{ bucket_results + [ ' '.join(item.msg.split()[-3:] ) ] }}"
+  with_items: "{{ bucket_files.results }}"
+- block:
+  - name: create missing files
+    become: true
+    shell: "{{ secret.command }}"
+  - name: upload missing files
+    become: true
+    aws_s3:
+      bucket: "{{ bucket }}"
+      mode: put
+      object: "{{ secret.bucket_path }}/{{ item.split('/')[-1] }}"
+      permission: bucket-owner-full-control
+      src: "{{ item }}"
+    with_items: "{{ secret.creates }}"
+  when: ( "does not exist." in bucket_results )
+

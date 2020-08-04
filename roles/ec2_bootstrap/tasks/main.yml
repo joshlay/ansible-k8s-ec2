@@ -1,7 +1,7 @@
 - name: create ec2 instances
   delegate_to: localhost
   ec2_instance: 
-    instance_role: kube_master
+    instance_role: "{{ instance_role | default('kube_master') }}"
     state: "{{ state | default('present') }}"
     profile: "{{ aws_profile }}"
     image_id: "{{ image_id }}"

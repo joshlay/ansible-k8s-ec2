@@ -14,6 +14,7 @@
     - set_fact:
         image_id: "{{ matching_images['images'][0]['image_id'] }}"
         instance_name: "{{ cluster_name }}_provisioning"
+        instance_role: k8s_master_node
     - include_role:
         name: ec2_bootstrap
     - debug: var=instances
@@ -24,10 +25,10 @@
         ansible_ssh_common_args: "{{ ansible_ssh_common_args + ' -o StrictHostKeyChecking=No ' }}"
         ansible_ssh_private_key_file:  "{{ ssh_key.local_path }}"
         ansible_python_interpreter: "{{ interpreter }}"
+      changed_when: false
 - name: do stuff to the host
   vars_files: vars/main.yml
   hosts: "{{ cluster_name }}_provisioning"
   tasks:
-    - setup:
     - include_role:
         name: cluster_secrets

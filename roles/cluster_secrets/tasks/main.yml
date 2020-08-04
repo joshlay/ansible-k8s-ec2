@@ -1,8 +1,14 @@
+- set_fact:
+    bucket: "{{ cluster_name }}-lockbox"
+
 - name: create s3 bucket
   delegate_to: localhost
   aws_s3:
     profile: "{{ aws_profile }}"
-    bucket: "{{ cluster_name }}-lockbox"
+    bucket: "{{ bucket }}"
     mode: create
-    permission: private
-
+    permission: bucket-owner-full-control
+- include_tasks: create_and_upload_file.yml
+  loop: "{{ secret_files }}"
+  loop_control:
+    loop_var: secret

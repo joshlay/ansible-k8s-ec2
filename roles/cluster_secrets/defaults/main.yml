@@ -1,0 +1,23 @@
+secret_files:
+  - bucket_path: /certs/etcd
+    command: kubeadm init phase certs etcd-ca
+    creates:
+      - /etc/kubernetes/pki/etcd/ca.key
+      - /etc/kubernetes/pki/etcd/ca.crt
+  - bucket_path: /certs
+    command: kubeadm init phase certs ca
+    creates:
+      - /etc/kubernetes/pki/ca.key
+      - /etc/kubernetes/pki/ca.crt
+  - bucket_path: /certs
+    command: kubeadm init phase front-proxy-ca
+    creates:
+      - /etc/kubernetes/pki/front-proxy-ca.crt
+      - /etc/kubernetes/pki/front-proxy-ca.key
+  - bucket_path: /certs
+    command: kubeadm init phase certs sa
+    creates:
+      - /etc/kubernetes/pki/sa.pub
+      - /etc/kubernetes/pki/sa.key
+
+
