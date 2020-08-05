@@ -36,16 +36,6 @@ class cluster_helper(object):
         self.peer_ids = self.get_asg_member_instances()
         self.peer_names = self.get_asg_instance_dns_names(self.peer_ids)
         self.etcd_hosts = self.find_etcd_hosts()
-        if self.mode == 'etcd':
-            etcd_retries = 3
-        else:
-            etcd_retries = 30
-        client = self.get_etcd_client(retries=etcd_retries)
-        if client:
-            self.get_etcd_cluster_state = "existing"
-            self.etcd_client = client
-        else: 
-            self.get_etcd_cluster_state = "new"
         self.member_string = f"{self.i['hostname']}=https://{self.i['hostname']}:2380"
     def get_asg_member_instances(self):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
@@ -197,20 +187,26 @@ class cluster_helper(object):
                     'certs etcd-peer',
                     'certs etcd-healthcheck-client'
                     ]
-        elif mode == 'master':
+        elif mode == 'master-client':
             phases = [
-                    'certs apiserver',
                     'certs apiserver-kubelet-client',
                     'certs front-proxy-client',
-                    'apiserver-etcd-client',
+                    'certs apiserver-etcd-client',
                     ]
-        elif mode == 'worker':
+        elif mode == 'worker-client':
             phases = [
                     'certs apiserver-kubelet-client',
                     'certs front-proxy-client'
                     ]
+        elif mode == 'master-apiserver':
+            phases = [
+                    'certs apiserver'
+                    ]
         for phase in phases:
-            command = f"kubeadm init phase {phase} --config /tmp/kubeconfig.yaml"
+            command = f"kubeadm init phase {phase}"
+            if mode == 'master-apiserver':
+               command = command + " --config /tmp/kubeconfig.yaml"
+               print(f"executing '{command}'")
             manifest_invocation = subprocess.check_call(command.split())
     def write_tmp_kubeconfig(self, kubeconfig):
         m = open('/tmp/kubeconfig.yaml', 'w')
@@ -249,22 +245,37 @@ class cluster_helper(object):
     def main(self):
         self.fetch_certs()
         if self.mode == "etcd":
+            etcd_retries = 3
+            client = self.get_etcd_client(retries=etcd_retries)
+            if client:
+                self.get_etcd_cluster_state = "existing"
+                self.etcd_client = client
+            else: 
+                self.get_etcd_cluster_state = "new"
             print("helping with etcd cluster")
             kubeconfig = self.render_etcd_kubeconfig()
             self.write_tmp_kubeconfig(kubeconfig)
-            self.create_client_certs(self.mode)
+            self.create_client_certs('etcd')
             self.write_etcd_manifest()
             if self.get_etcd_cluster_state == "existing":
                 self.add_etcd_member()
         elif self.mode == "master":
+            self.create_client_certs('master-client')
+            etcd_retries = 30
+            client = self.get_etcd_client(retries=etcd_retries)
+            if client:
+                self.etcd_client = client
+            else: 
+                print('Unable to connect to etcd cluster! Failing.')
+                sys.exit(1)
             print("helping with kube master node")
             kubeconfig = self.render_node_kubeconfig()
             self.write_tmp_kubeconfig(kubeconfig)
-            self.create_client_certs(self.mode)
+            self.create_client_certs('master-apiserver')
 
         elif self.mode == "worker":
             print("helping with kube worker node")
-            self.create_client_certs(self.mode)
+            self.create_client_certs('worker-client')
         else:
             print("Mode of operation not defined! Choose from 'etcd', 'master', or 'worker'")
 
