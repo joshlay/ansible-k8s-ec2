@@ -201,7 +201,10 @@ class cluster_helper(object):
                     'apiserver-etcd-client',
                     ]
         elif mode == 'worker':
-            phases = []
+            phases = [
+                    'certs apiserver-kubelet-client',
+                    'certs front-proxy-client'
+                    ]
         for phase in phases:
             command = f"kubeadm init phase {phase} --config /tmp/kubeconfig.yaml"
             manifest_invocation = subprocess.check_call(command.split())
