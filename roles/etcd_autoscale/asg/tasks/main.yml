@@ -1,6 +1,4 @@
 - include_tasks: etcd_iam.yml
-- include_role:
-    name: elb_creator
 - name: find image
   ec2_ami_info:
     profile: "{{ aws_profile }}"
