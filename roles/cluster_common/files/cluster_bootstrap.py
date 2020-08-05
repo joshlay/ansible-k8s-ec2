@@ -163,7 +163,8 @@ class cluster_helper(object):
                 print("unable to get secrets from bucket, fail")
                 sys.exit(1)
             cert_data = response['Body']
-            cert = str(cert_data.read())
+            cert_raw = cert_data.read()
+            cert = cert_raw.decode("utf-8")
             cert_data.close()
             return cert
         def write_cert(cert, path, prefix):
