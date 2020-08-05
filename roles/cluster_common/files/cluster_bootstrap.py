@@ -186,6 +186,25 @@ class cluster_helper(object):
             write_cert(cert, path, path_prefix)
 
         pass
+    def create_client_certs(self, mode):
+        if mode == 'etcd':
+            phases = [
+                    'certs etcd-server',
+                    'certs etcd-peer',
+                    'certs etcd-healthcheck-client'
+                    ]
+        elif mode == 'master':
+            phases = [
+                    'certs apiserver',
+                    'certs apiserver-kubelet-client',
+                    'certs front-proxy-client',
+                    'apiserver-etcd-client',
+                    ]
+        elif mode == 'worker':
+            phases = []
+        for phase in phases:
+            command = f"kubeadm init phase {phase} --config /tmp/kubeconfig.yaml"
+            manifest_invocation = subprocess.check_call(command.split())
     def write_tmp_kubeconfig(self, kubeconfig):
         m = open('/tmp/kubeconfig.yaml', 'w')
         mm = m.write(kubeconfig)
@@ -221,6 +240,8 @@ class cluster_helper(object):
         return kubeconfig
 
     def main(self):
+        self.fetch_certs()
+        self.create_client_certs(self.mode)
         if self.mode == "etcd":
             print("helping with etcd cluster")
             kubeconfig = self.render_etcd_kubeconfig()
