@@ -157,12 +157,15 @@ class cluster_helper(object):
             try:
                 response = self.s3.get_object(
                    Bucket=cluster_bucket,
-                   Key=path
+                   Key=f"certs/{path}"
                    )
             except:
                 print("unable to get secrets from bucket, fail")
                 sys.exit(1)
-            return response['Body']
+            cert_data = response['Body']
+            cert = str(cert_data.read())
+            cert_data.close()
+            return cert
         def write_cert(cert, path, prefix):
             m = open(f'{prefix}/{path}', 'w')
             mm = m.write(cert)
@@ -244,11 +247,11 @@ class cluster_helper(object):
 
     def main(self):
         self.fetch_certs()
-        self.create_client_certs(self.mode)
         if self.mode == "etcd":
             print("helping with etcd cluster")
             kubeconfig = self.render_etcd_kubeconfig()
             self.write_tmp_kubeconfig(kubeconfig)
+            self.create_client_certs(self.mode)
             self.write_etcd_manifest()
             if self.get_etcd_cluster_state == "existing":
                 self.add_etcd_member()
@@ -256,9 +259,11 @@ class cluster_helper(object):
             print("helping with kube master node")
             kubeconfig = self.render_node_kubeconfig()
             self.write_tmp_kubeconfig(kubeconfig)
+            self.create_client_certs(self.mode)
 
         elif self.mode == "worker":
             print("helping with kube worker node")
+            self.create_client_certs(self.mode)
         else:
             print("Mode of operation not defined! Choose from 'etcd', 'master', or 'worker'")
 
