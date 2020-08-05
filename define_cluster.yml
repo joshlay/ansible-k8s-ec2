@@ -32,3 +32,10 @@
   tasks:
     - include_role:
         name: cluster_secrets
+    - name: destroy the instance
+      delegate_to: localhost
+      ec2_instance:
+        profile: "{{ aws_profile }}"
+        region: "{{ region }}"
+        instance_ids: "{{ [instance_id] }}"
+        state: absent

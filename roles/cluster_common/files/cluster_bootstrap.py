@@ -180,12 +180,11 @@ class cluster_helper(object):
             ]
         path_prefix = "/etc/kubernetes/pki"
         cluster_bucket = f"{self.cluster}-lockbox"
+        print(f"fetching certs from {cluster_bucket}")
         for path in cert_paths:
             cert = get_cert(path)
             write_cert(cert, path, path_prefix)
 
-        print(f"fetching certs from {cluster_bucket}")
-        create_invocation = subprocess.check_call('kubeadm init phase certs etcd-ca')
         pass
     def write_tmp_kubeconfig(self, kubeconfig):
         m = open('/tmp/kubeconfig.yaml', 'w')
