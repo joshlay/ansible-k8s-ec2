@@ -53,6 +53,7 @@
     launch_template:
       launch_template_name: "{{ cluster_name }}-master-launch"
       version: "$Latest"
+    load_balancers: "{{ elb_name }}"
     termination_policies: OldestLaunchConfiguration
     metrics_collection: no
     min_size: 3
