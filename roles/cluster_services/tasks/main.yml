@@ -1,0 +1,10 @@
+- name: ship cluster resources
+  delegate_to: localhost
+  aws_s3:
+    profile: "{{ aws_profile }}"
+    bucket: "{{  bucket }}"
+    mode: put
+    object: "manitests/{{ item }}"
+    src: "files/{{ item }}"
+    permission: bucket-owner-full-control
+  with_items: "{{ resource_files }}"

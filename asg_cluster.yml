@@ -8,6 +8,12 @@
   tasks:
       - include_role: 
           name: etcd_autoscale/asg
+          apply:
+            tags: ['etcd']
+        tags: ['etcd']
       - include_role:
           name: kube_builder/asg
+          apply:
+            tags: ['master']
+        tags: ['master']
 

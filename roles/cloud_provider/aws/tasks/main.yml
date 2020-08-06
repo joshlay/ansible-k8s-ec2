@@ -1,3 +1,0 @@
----
-- include_tasks: iam_kube_master.yml
-- include_tasks: create_asg.yml

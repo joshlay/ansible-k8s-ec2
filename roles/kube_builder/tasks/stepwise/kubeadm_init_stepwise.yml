@@ -1,8 +1,0 @@
-- name: start kubelet
-  become: true
-  shell:  >
-    kubeadm init --config /home/{{ ansible_user }}/kubeadm-config.yaml phase kubelet-start --node-name {{ ansible_nodename }}
-    creates=/var/lib/kubelet/config.yaml
-  register: phase_kubelet
-- include_tasks: kubeadm_init_kubeconfig.yml
-- include_tasks: kubeadm_init_control_plane.yml

@@ -1,0 +1,6 @@
+cni_plugin: calico
+bucket: "{{ cluster_name }}-lockbox
+resource_files:
+  - "{{ cni_plugin }}.yml"
+  - configmap_coredns.yaml
+  - calicoctl.yaml
