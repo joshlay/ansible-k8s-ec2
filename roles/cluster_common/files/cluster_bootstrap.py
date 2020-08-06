@@ -26,6 +26,7 @@ class cluster_helper(object):
         self.autoscaling = self.session.client('autoscaling')
         self.ec2 = self.session.client('ec2')
         self.s3 = self.session.client('s3')
+        self.cluster_bucket = f"{self.cluster}-lockbox"
         self.i['hostname'] = self.ec2.describe_instances(InstanceIds=[self.i['instanceId']])['Reservations'][0]['Instances'][0]['PrivateDnsName']
         self.elb = self.session.client('elb')
         self.tags = {}
@@ -146,7 +147,7 @@ class cluster_helper(object):
         def get_cert(path):
             try:
                 response = self.s3.get_object(
-                   Bucket=cluster_bucket,
+                   Bucket=self.cluster_bucket,
                    Key=f"certs/{path}"
                    )
             except:
@@ -173,8 +174,7 @@ class cluster_helper(object):
             "sa.key"
             ]
         path_prefix = "/etc/kubernetes/pki"
-        cluster_bucket = f"{self.cluster}-lockbox"
-        print(f"fetching certs from {cluster_bucket}")
+        print(f"fetching certs from {self.cluster_bucket}")
         for path in cert_paths:
             cert = get_cert(path)
             write_cert(cert, path, path_prefix)
@@ -224,7 +224,12 @@ class cluster_helper(object):
             client_urls += member.client_urls
         return client_urls
     def get_join_token(self):
-        return False
+        join_invocation = 'kubeadm token --config /etc/kubernetes/admin.conf create --print-join-command'
+        if self.mode == 'master':
+            join_invocation += " --control-plane"
+        command = subprocess.check_call(join_invocation.split())
+        invocation = command.stdout.decode('utf-8').strip()
+        return invocation
     def render_node_kubeconfig(self):
         f = open('/usr/local/share/k8s_autoscale/kubeadm-config.yaml.j2')
         t = f.read()
@@ -238,12 +243,44 @@ class cluster_helper(object):
           cluster_name = self.cluster,
           etcd_server_urls = self.get_etcd_client_urls(),
           kube_vip = self.find_load_balancer(role='k8s'),
-          join_token = self.get_join_token()
           )
         return kubeconfig
 
     def upload_kubeconfig(self):
-        upload = self.s3.upload_file('/etc/hubernetes/admin.conf', 'cluster0-lockbox', 'admin/kubeconfig'
+        upload = self.s3.upload_file('/etc/hubernetes/admin.conf', self.cluster_bucket, 'admin/kubeconfig')
+    def get_kubeconfig(self):
+        try:
+            response = self.s3.get_object(
+                       Bucket=self.cluster_bucket,
+                       Key=f"certs/{path}")
+            data = response['Body']
+            raw = data.read()
+            k = raw.decode("utf-8")
+            data.close()
+            m = open(f'/etc/kubernetes/admin.conf', 'w')
+            mm = m.write(cert)
+            m.close()
+            return True
+        except:
+            print('No kubeconfig discovered in {self.cluster_bucket}, am I new?')
+            return False
+    def new_master(self):
+        etcd_retries = 30
+        client = self.get_etcd_client(retries=etcd_retries)
+        if client:
+            self.etcd_client = client
+        else: 
+            print('Unable to connect to etcd cluster! Failing.')
+            sys.exit(1)
+        print("helping with kube master node")
+        kubeconfig = self.render_node_kubeconfig()
+        self.write_tmp_kubeconfig(kubeconfig)
+        self.create_client_certs('master-apiserver')
+        sleep(90)
+        self.upload_kubeconfig()
+    def join_node(self):
+        join_command = self.get_join_token()
+        join = subprocess.check_call(join_command.split())
     def main(self):
         self.fetch_certs()
         if self.mode == "etcd":
@@ -261,22 +298,13 @@ class cluster_helper(object):
             self.write_etcd_manifest()
             if self.get_etcd_cluster_state == "existing":
                 self.add_etcd_member()
-        elif self.mode == "master":
-            self.create_client_certs('master-client')
-            etcd_retries = 30
-            client = self.get_etcd_client(retries=etcd_retries)
-            if client:
-                self.etcd_client = client
-            else: 
-                print('Unable to connect to etcd cluster! Failing.')
-                sys.exit(1)
-            print("helping with kube master node")
-            kubeconfig = self.render_node_kubeconfig()
-            self.write_tmp_kubeconfig(kubeconfig)
-            self.create_client_certs('master-apiserver')
-            sleep(90)
-            self.upload_kubeconfig()
-
+        elif self.mode in ["master", "worker"]:
+            self.create_client_certs(f"{self.mode}-client")
+            kubeconfig = self.get_kubeconfig()
+            if kubeconfig:
+                self.join_node()
+            else:
+                self.new_master()
         elif self.mode == "worker":
             print("helping with kube worker node")
             self.create_client_certs('worker-client')
