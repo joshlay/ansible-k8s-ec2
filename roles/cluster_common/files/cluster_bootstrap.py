@@ -7,6 +7,7 @@ from boto3.session import Session
 from jinja2 import Template
 import subprocess
 from etcd3 import Etcd3Client
+from time import sleep
 
 metaurl='http://169.254.169.254/latest/meta-data/'
 
@@ -247,7 +248,7 @@ class cluster_helper(object):
         return kubeconfig
 
     def upload_kubeconfig(self):
-        upload = self.s3.upload_file('/etc/hubernetes/admin.conf', self.cluster_bucket, 'admin/kubeconfig')
+        upload = self.s3.upload_file('/etc/kubernetes/admin.conf', self.cluster_bucket, 'admin/kubeconfig')
     def get_kubeconfig(self):
         try:
             response = self.s3.get_object(
