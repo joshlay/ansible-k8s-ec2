@@ -26,7 +26,6 @@ class cluster_helper(object):
         self.autoscaling = self.session.client('autoscaling')
         self.ec2 = self.session.client('ec2')
         self.s3 = self.session.client('s3')
-        self.cluster_bucket = f"{self.cluster}-lockbox"
         self.i['hostname'] = self.ec2.describe_instances(InstanceIds=[self.i['instanceId']])['Reservations'][0]['Instances'][0]['PrivateDnsName']
         self.elb = self.session.client('elb')
         self.tags = {}
@@ -34,6 +33,7 @@ class cluster_helper(object):
         for tag in rawtags['Tags']:
             self.tags[tag['Key']] = tag['Value']
         self.cluster = self.tags['KubernetesCluster']
+        self.cluster_bucket = f"{self.cluster}-lockbox"
         self.peer_ids = self.get_asg_member_instances()
         self.peer_names = self.get_asg_instance_dns_names(self.peer_ids)
         self.etcd_hosts = self.find_etcd_hosts()
