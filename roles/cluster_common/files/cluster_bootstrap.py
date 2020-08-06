@@ -242,6 +242,8 @@ class cluster_helper(object):
           )
         return kubeconfig
 
+    def upload_kubeconfig(self):
+        upload = self.s3.upload_file('/etc/hubernetes/admin.conf', 'cluster0-lockbox', 'admin/kubeconfig'
     def main(self):
         self.fetch_certs()
         if self.mode == "etcd":
@@ -272,6 +274,8 @@ class cluster_helper(object):
             kubeconfig = self.render_node_kubeconfig()
             self.write_tmp_kubeconfig(kubeconfig)
             self.create_client_certs('master-apiserver')
+            sleep(90)
+            self.upload_kubeconfig()
 
         elif self.mode == "worker":
             print("helping with kube worker node")
