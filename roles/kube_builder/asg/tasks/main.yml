@@ -31,7 +31,7 @@
     profile: "{{ aws_profile }}"
     image_id: "{{ use_ami }}"
     instance_type: "{{ master_launch.instance_type }}"
-    iam_instance_profile: kube_master
+    iam_instance_profile: "{{ master_launch.instance_profile }}"
     default_version: "latest"
     key_name: "{{ ssh_key.aws_label }}"
     user_data: "{{ lookup('template', 'kube_master_user_data.yml') |b64encode }}"
