@@ -66,6 +66,11 @@
   with_items: 
     - kubelet
     - docker
+- name: create a dir
+  become: true
+  file:
+    path: /etc/kubernetes/pki/etcd
+    state: directory
 # this is just a sanity check, not changeful
 - name: prep image pull
   become: true
