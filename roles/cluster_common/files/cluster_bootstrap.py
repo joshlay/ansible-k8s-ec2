@@ -8,6 +8,9 @@ from jinja2 import Template
 import subprocess
 from etcd3 import Etcd3Client
 from time import sleep
+# this would be hard, shell out to `kubectl`
+# from kubernetes import client, config
+# from kubernetes.client.rest import ApiException
 
 metaurl='http://169.254.169.254/latest/meta-data/'
 
@@ -228,7 +231,7 @@ class cluster_helper(object):
         join_invocation = 'kubeadm token --config /etc/kubernetes/admin.conf create --print-join-command'
         if self.mode == 'master':
             join_invocation += " --control-plane"
-        command = subprocess.check_call(join_invocation.split())
+        command = subprocess.run(join_invocation.split(), capture_output=True)
         invocation = command.stdout.decode('utf-8').strip()
         return invocation
     def render_node_kubeconfig(self):
@@ -279,9 +282,73 @@ class cluster_helper(object):
         self.create_client_certs('master-apiserver')
         sleep(90)
         self.upload_kubeconfig()
+        self.apply_manifests()
     def join_node(self):
         join_command = self.get_join_token()
         join = subprocess.check_call(join_command.split())
+    def get_kubeclient(self):
+        try:
+            if "KUBERNETES_SERVICE_HOST" in os.environ:
+                config.load_incluster_config()
+                print('using in cluster config')
+            else:
+                config.load_kube_config()
+                print('using local kube config')
+        except:
+            print('unable to load cluster configuration, exiting...')
+            sys.exit(1)
+        self.kubecore = client.CoreV1Api()
+        self.kubeapps = client.AppsV1Api()
+    def fetch_s3_manifest_list(self):
+        rawlist = self.s3.list_objects(
+                Bucket=self.cluster_bucket,
+                prefix='manifests/'
+                )
+        try:
+            manifests = [ l['Key'] for l in rawlist['Contents'] if not l['Key'].endswith('/') ]
+            return manifests
+        except KeyError:
+            return False
+    def apply_manifests(self):
+        manifest_yaml = self.get_manifest_yaml(self)
+        for manifest in manifest_yaml:
+            temp_path = f"/dev/shm/bootstrap-manifest-{ manifest_yaml.index(manifest) }"
+            f = open(temp_path, 'w')
+            f.write(manifest)
+            f.close()
+            os.environ['KUBE_CONFIG'] = '/etc/kubernetes/admin.conf'
+            attempt = subprocess.run(
+                [ 'kubectl', 'apply', '-f', temp_path ],
+                capture_output=True,
+                errors=False
+                )
+            if call.returncode == 0:
+               print(call.stdout.decode('utf-8'))
+            else:
+               print(call.stderr.decode('utf-8'))
+    def get_manifest_yaml(self):
+        manifest_objects = self.fetch_s3_manifest_list()
+        manifest_yaml = []
+        if not manifests:
+            print('no manifests discovered in s3 bucket, what do I do?')
+        else:
+            for manifest_key in manifests:
+                response = self.s3.get_object(
+                   Bucket=self.cluster_bucket,
+                   Key=f"{manifest_key}"
+                   )
+                stream = response['Body']
+                byteobj = cert_data.read()
+                manifest = cert_raw.decode("utf-8")
+                stream.close()
+                manifest_yaml.append(manifest)
+        # There's no `kubectl apply` equivalent for this client
+        # I don't want to write code to handle each kind
+        #        manifest_yaml += [ yaml.load(part) for part in manifest.split('---') ] 
+        # remove 'extra' documents introduced by --- splits
+        #while None in manifest_yaml:
+        #    manifest_yaml.remove(None)
+        return manifest_yaml
     def main(self):
         self.fetch_certs()
         if self.mode == "etcd":

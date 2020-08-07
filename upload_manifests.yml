@@ -1,0 +1,6 @@
+- name: upload cluster service manifests to s3
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - include_role:
+        name: cluster_services

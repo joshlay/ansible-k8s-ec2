@@ -4,7 +4,7 @@
     profile: "{{ aws_profile }}"
     bucket: "{{  bucket }}"
     mode: put
-    object: "manitests/{{ item }}"
+    object: "manifests/{{ item }}"
     src: "files/{{ item }}"
     permission: bucket-owner-full-control
   with_items: "{{ resource_files }}"
