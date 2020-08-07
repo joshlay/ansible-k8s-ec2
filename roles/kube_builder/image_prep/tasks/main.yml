@@ -8,4 +8,3 @@
   copy:
     src: kubeadm-config.yaml.j2
     dest: /usr/local/share/k8s_autoscale/kubeadm-config.yaml.j2
-- include_tasks: cert_provision.yml
