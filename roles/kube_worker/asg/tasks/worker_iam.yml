@@ -1,0 +1,38 @@
+- name: allow instances to assume roles
+  iam_role:
+    assume_role_policy_document: >
+      {   
+         "Version": "2012-10-17",
+         "Statement": [
+           {
+             "Effect": "Allow",
+             "Principal": {
+               "Service": "ec2.amazonaws.com"
+             },
+             "Action": "sts:AssumeRole"
+           }
+         ]
+      }   
+    profile: "{{ aws_profile }}"
+    name: "{{ launch.instance_profile }}"
+    state: present
+    region: "{{ region }}"
+    purge_policies: yes 
+    create_instance_profile: yes 
+  register: kube_worker_role
+- set_fact:
+    policy_json: "{{ lookup('template', 'kube_worker_iam_policy.json') }}"
+- debug: var=policy_json
+- name: create iam policy for workers
+  run_once: true
+  delegate_to: localhost
+  iam_policy:
+    profile: "{{ aws_profile }}"
+    region: "{{ region }}"
+    iam_name: "{{ launch.instance_profile }}"
+    iam_type: role
+    policy_name: 
+    policy_json: "{{ policy_json }}"
+    state: present
+
+      

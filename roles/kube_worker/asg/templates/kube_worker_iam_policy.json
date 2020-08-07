@@ -1,0 +1,49 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeTags",
+                "autoscaling:DescribeLaunchConfigurations",
+                "autoscaling:DescribeAutoScalingInstances",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:DescribeInstances",
+                "ec2:DescribeTags"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        },
+        {
+          "Action": [
+            "elasticloadbalancing:DescribeLoadBalancers",
+            "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+            "elasticloadbalancing:RegisterInstancesWithLoadBalancer"
+          ],
+          "Resource": "*",
+          "Effect": "Allow"
+        },
+        {
+          "Action": [
+						"s3:GetObject",
+						"s3:GetObjectAcl",
+						"s3:GetObjectTagging",
+						"s3:GetObjectTorrent",
+						"s3:GetObjectVersion",
+						"s3:GetObjectVersionAcl",
+						"s3:GetObjectVersionTagging",
+						"s3:ListBucket"
+				],
+					"Effect": "Allow",
+					"Resource": "arn:aws:s3:::cluster0-lockbox/*"
+				},
+        {
+          "Action": ["s3:ListBucket"],
+					"Effect": "Allow",
+					"Resource": "arn:aws:s3:::cluster0-lockbox"
+        }
+
+
+    ]
+}
