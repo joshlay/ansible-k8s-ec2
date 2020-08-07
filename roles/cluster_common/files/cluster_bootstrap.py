@@ -252,17 +252,28 @@ class cluster_helper(object):
 
     def upload_kubeconfig(self):
         upload = self.s3.upload_file('/etc/kubernetes/admin.conf', self.cluster_bucket, 'admin/kubeconfig')
-    def get_kubeconfig(self):
+        os.environ['KUBECONFIG'] = '/etc/kubernetes/admin.conf'
+        command = 'kubectl -n kube-system get configmap kubeadm-config -o yaml'
+        result = subprocess.run(command.split(), capture_output=True)
+        if result.returncode == 0:
+            print("unable to capture kubeadm config!")
+        else:
+            parsed = yaml.load(result.stdout.decode('utf-8'))
+            f = open('/etc/kubernetes/kubeadm.conf')
+            ff = f.write(yaml.dump(parsed['data']))
+            f.close()
+            kupload = self.s3.upload_file('/etc/kubernetes/kubeadm.conf', self.cluster_bucket, 'admin/kubeconfig')
+    def get_kubeadm_config(self):
         try:
             response = self.s3.get_object(
                        Bucket=self.cluster_bucket,
-                       Key="admin/kubeconfig")
+                       Key="admin/kubeadm.conf")
             data = response['Body']
             raw = data.read()
             k = raw.decode("utf-8")
             data.close()
-            m = open(f'/etc/kubernetes/admin.conf', 'w')
-            mm = m.write(cert)
+            m = open(f'/etc/kubernetes/kubeadm.conf', 'w')
+            mm = m.write(k)
             m.close()
             return True
         except:
@@ -373,7 +384,7 @@ class cluster_helper(object):
                 self.add_etcd_member()
         elif self.mode in ["master", "worker"]:
             self.create_client_certs(f"{self.mode}-client")
-            kubeconfig = self.get_kubeconfig()
+            self.get_kubeadm_config()
             if kubeconfig:
                 self.join_node()
             else:
