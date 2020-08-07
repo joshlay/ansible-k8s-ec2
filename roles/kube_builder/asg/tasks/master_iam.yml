@@ -14,7 +14,7 @@
          ]
       }   
     profile: "{{ aws_profile }}"
-    name: k8s_master_node
+    name: "{{ master_launch.instance_profile }}"
     state: present
     region: "{{ region }}"
     purge_policies: yes 
@@ -29,7 +29,7 @@
   iam_policy:
     profile: "{{ aws_profile }}"
     region: "{{ region }}"
-    iam_name: k8s_master_node
+    iam_name: "{{ master_launch.instance_profile }}"
     iam_type: role
     policy_name: 
     policy_json: "{{ policy_json }}"
