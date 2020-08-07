@@ -307,7 +307,7 @@ class cluster_helper(object):
     def fetch_s3_manifest_list(self):
         rawlist = self.s3.list_objects(
                 Bucket=self.cluster_bucket,
-                prefix='manifests/'
+                Prefix='manifests/'
                 )
         try:
             manifests = [ l['Key'] for l in rawlist['Contents'] if not l['Key'].endswith('/') ]
@@ -327,12 +327,12 @@ class cluster_helper(object):
                 capture_output=True,
                 errors=False
                 )
-            if call.returncode == 0:
-               print(call.stdout.decode('utf-8'))
+            if attempt.returncode == 0:
+               print(attempt.stdout.decode('utf-8'))
             else:
-               print(call.stderr.decode('utf-8'))
+               print(attempt.stderr.decode('utf-8'))
     def get_manifest_yaml(self):
-        manifest_objects = self.fetch_s3_manifest_list()
+        manifests = self.fetch_s3_manifest_list()
         manifest_yaml = []
         if not manifests:
             print('no manifests discovered in s3 bucket, what do I do?')
@@ -343,8 +343,8 @@ class cluster_helper(object):
                    Key=f"{manifest_key}"
                    )
                 stream = response['Body']
-                byteobj = cert_data.read()
-                manifest = cert_raw.decode("utf-8")
+                byteobj = stream.read()
+                manifest = byteobj.decode("utf-8")
                 stream.close()
                 manifest_yaml.append(manifest)
         # There's no `kubectl apply` equivalent for this client
