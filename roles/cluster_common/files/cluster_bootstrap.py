@@ -315,7 +315,7 @@ class cluster_helper(object):
         except KeyError:
             return False
     def apply_manifests(self):
-        manifest_yaml = self.get_manifest_yaml(self)
+        manifest_yaml = self.get_manifest_yaml()
         for manifest in manifest_yaml:
             temp_path = f"/dev/shm/bootstrap-manifest-{ manifest_yaml.index(manifest) }"
             f = open(temp_path, 'w')
