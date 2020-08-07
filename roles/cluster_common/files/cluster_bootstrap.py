@@ -266,7 +266,7 @@ class cluster_helper(object):
             m.close()
             return True
         except:
-            print('No kubeconfig discovered in {self.cluster_bucket}, am I new?')
+            print(f'No kubeconfig discovered in {self.cluster_bucket}, am I new?')
             return False
     def new_master(self):
         etcd_retries = 30
@@ -280,6 +280,11 @@ class cluster_helper(object):
         kubeconfig = self.render_node_kubeconfig()
         self.write_tmp_kubeconfig(kubeconfig)
         self.create_client_certs('master-apiserver')
+        call = subprocess.run(
+            ['kubeadm', 'init', '--config', '/tmp/kubeconfig.yaml', '--upload-certs'],
+            capture_output=True,
+            errors=False
+            )
         sleep(90)
         self.upload_kubeconfig()
         self.apply_manifests()
