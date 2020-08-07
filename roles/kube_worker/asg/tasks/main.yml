@@ -60,3 +60,7 @@
     replace_all_instances: no
     vpc_zone_identifier:
       - "{{ subnet_id }}"
+    tags:
+      - randomuser.org/usage: kube_worker
+      - KubernetesCluster: "{{ cluster_name }}"
+      - k8s.io/cluster-autoscaler/enabled: "True"

@@ -256,7 +256,7 @@ class cluster_helper(object):
         try:
             response = self.s3.get_object(
                        Bucket=self.cluster_bucket,
-                       Key=f"certs/{path}")
+                       Key="admin/kubeconfig")
             data = response['Body']
             raw = data.read()
             k = raw.decode("utf-8")
