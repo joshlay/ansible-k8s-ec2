@@ -321,7 +321,7 @@ class cluster_helper(object):
             f = open(temp_path, 'w')
             f.write(manifest)
             f.close()
-            os.environ['KUBE_CONFIG'] = '/etc/kubernetes/admin.conf'
+            os.environ['KUBECONFIG'] = '/etc/kubernetes/admin.conf'
             attempt = subprocess.run(
                 [ 'kubectl', 'apply', '-f', temp_path ],
                 capture_output=True,
