@@ -38,9 +38,6 @@ spec:
             - protocol: TCP
               containerPort: 80
               name: canary
-        - name: sidecar
-          image: fedora
-          command: ["/sbin/init"]
 ---
 
 
