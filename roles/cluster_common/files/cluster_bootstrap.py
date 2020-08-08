@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import requests
 import json
+import yaml
 import os
 import sys
 from boto3.session import Session
@@ -228,12 +229,16 @@ class cluster_helper(object):
             client_urls += member.client_urls
         return client_urls
     def get_join_token(self):
-        join_invocation = 'kubeadm token --config /etc/kubernetes/admin.conf create --print-join-command'
+        join_invocation = 'kubeadm token --config /etc/kubernetes/kubeadm.conf create --print-join-command'
         if self.mode == 'master':
             join_invocation += " --control-plane"
         command = subprocess.run(join_invocation.split(), capture_output=True)
-        invocation = command.stdout.decode('utf-8').strip()
-        return invocation
+        if command.returncode == 0:
+            invocation = command.stdout.decode('utf-8').strip()
+            return invocation
+        else:
+            print(command.stderr)
+            return False
     def render_node_kubeconfig(self):
         f = open('/usr/local/share/k8s_autoscale/kubeadm-config.yaml.j2')
         t = f.read()
@@ -242,7 +247,7 @@ class cluster_helper(object):
         kubeconfig = template.render(
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
-          provider_id = f"aws://{ self.i['availabilityZone'] }/{ self.i['instanceId'] }",
+          provider_id = f"aws:///{ self.i['availabilityZone'] }/{ self.i['instanceId'] }",
           role = self.mode,
           cluster_name = self.cluster,
           etcd_server_urls = self.get_etcd_client_urls(),
@@ -256,13 +261,13 @@ class cluster_helper(object):
         command = 'kubectl -n kube-system get configmap kubeadm-config -o yaml'
         result = subprocess.run(command.split(), capture_output=True)
         if result.returncode == 0:
-            print("unable to capture kubeadm config!")
-        else:
-            parsed = yaml.load(result.stdout.decode('utf-8'))
-            f = open('/etc/kubernetes/kubeadm.conf')
-            ff = f.write(yaml.dump(parsed['data']))
+            parsed = yaml.load(result.stdout)
+            f = open('/etc/kubernetes/kubeadm.conf', 'w')
+            ff = f.write(parsed['data']['ClusterConfiguration'])
             f.close()
-            kupload = self.s3.upload_file('/etc/kubernetes/kubeadm.conf', self.cluster_bucket, 'admin/kubeconfig')
+            kupload = self.s3.upload_file('/etc/kubernetes/kubeadm.conf', self.cluster_bucket, 'admin/kubeadm.conf')
+        else:
+            print("unable to capture kubeadm config!")
     def get_kubeadm_config(self):
         try:
             response = self.s3.get_object(
@@ -275,6 +280,16 @@ class cluster_helper(object):
             m = open(f'/etc/kubernetes/kubeadm.conf', 'w')
             mm = m.write(k)
             m.close()
+            response = self.s3.get_object(
+                       Bucket=self.cluster_bucket,
+                       Key="admin/kubeconfig")
+            data = response['Body']
+            raw = data.read()
+            k = raw.decode("utf-8")
+            data.close()
+            m = open(f'/etc/kubernetes/admin.conf', 'w')
+            mm = m.write(k)
+            m
             return True
         except:
             print(f'No kubeconfig discovered in {self.cluster_bucket}, am I new?')
@@ -301,6 +316,7 @@ class cluster_helper(object):
         self.apply_manifests()
     def join_node(self):
         join_command = self.get_join_token()
+        join_command += ' --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt'
         join = subprocess.check_call(join_command.split())
     def get_kubeclient(self):
         try:
