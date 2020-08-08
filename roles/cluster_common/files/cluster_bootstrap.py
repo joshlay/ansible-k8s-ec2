@@ -400,8 +400,8 @@ class cluster_helper(object):
                 self.add_etcd_member()
         elif self.mode in ["master", "worker"]:
             self.create_client_certs(f"{self.mode}-client")
-            self.get_kubeadm_config()
-            if kubeconfig:
+            fetchconfigs = self.get_kubeadm_config()
+            if fetchconfigs:
                 self.join_node()
             else:
                 self.new_master()
