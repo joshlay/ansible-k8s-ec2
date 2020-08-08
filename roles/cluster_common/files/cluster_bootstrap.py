@@ -230,8 +230,6 @@ class cluster_helper(object):
         return client_urls
     def get_join_token(self):
         join_invocation = 'kubeadm token --config /etc/kubernetes/kubeadm.conf create --print-join-command'
-        if self.mode == 'master':
-            join_invocation += " --control-plane"
         command = subprocess.run(join_invocation.split(), capture_output=True)
         if command.returncode == 0:
             invocation = command.stdout.decode('utf-8').strip()
@@ -316,6 +314,8 @@ class cluster_helper(object):
         self.apply_manifests()
     def join_node(self):
         join_command = self.get_join_token()
+        if self.mode == 'master':
+            join_command += " --control-plane"
         join_command += ' --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt'
         join = subprocess.check_call(join_command.split())
     def get_kubeclient(self):
