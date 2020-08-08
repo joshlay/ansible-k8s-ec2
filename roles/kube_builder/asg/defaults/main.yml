@@ -5,7 +5,7 @@ master_launch:
   instance_type: t3.small
   key_name: "{{ ssh_key.aws_label }}"
   user_data: "{{ lookup('template', 'kube_master_user_data.yml') }}"
-  instance_profile_name: k8s_master_node
+  instance_profile: k8s_master_node
   volumes:
     - device_name: /dev/xvdb
       ebs:
