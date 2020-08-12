@@ -16,4 +16,6 @@
           apply:
             tags: ['master']
         tags: ['master']
+      - include_role:
+          name: kube_worker/asg
 

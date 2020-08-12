@@ -7,10 +7,6 @@ metadata:
   name: canary-ingress
   namespace: default
 spec:
-  tls:
-    - hosts:
-      - canary.randomuser.org
-      secretName: canary-tls
   rules:
     - host: canary.randomuser.org
       http:

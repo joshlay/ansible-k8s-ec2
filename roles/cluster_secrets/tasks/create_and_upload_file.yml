@@ -20,7 +20,9 @@
 - set_fact:
     bucket_results:  "{{ bucket_results + [ ' '.join(item.msg.split()[-3:] ) ] }}"
   with_items: "{{ bucket_files.results }}"
+- debug: var=bucket_results
 - block:
+  - debug: var=secret.command
   - name: create missing files
     become: true
     shell: "{{ secret.command }}"

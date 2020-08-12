@@ -10,7 +10,7 @@ secret_files:
       - /etc/kubernetes/pki/ca.key
       - /etc/kubernetes/pki/ca.crt
   - bucket_path: /certs
-    command: kubeadm init phase front-proxy-ca
+    command: kubeadm init phase certs front-proxy-ca
     creates:
       - /etc/kubernetes/pki/front-proxy-ca.crt
       - /etc/kubernetes/pki/front-proxy-ca.key
