@@ -315,7 +315,7 @@ class cluster_helper(object):
         self.apply_manifests()
     def write_sysconfig(self):
         argstring = f'KUBELET_EXTRA_ARGSi+=" --provider-id={ self.provider_id }"'
-        f = open('EnvironmentFile=-/etc/sysconfig/kubelet', 'w')
+        f = open('/etc/sysonfig/kubelet', 'w')
         f.write(argstring)
         f.close()
     def join_node(self):
