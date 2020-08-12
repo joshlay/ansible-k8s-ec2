@@ -43,6 +43,7 @@ class cluster_helper(object):
         self.peer_names = self.get_asg_instance_dns_names(self.peer_ids)
         self.etcd_hosts = self.find_etcd_hosts()
         self.member_string = f"{self.i['hostname']}=https://{self.i['hostname']}:2380"
+        self.provider_id = f"aws:///{ self.i['availabilityZone'] }/{ self.i['instanceId'] }"
     def get_asg_member_instances(self):
         parent_asg = self.autoscaling.describe_auto_scaling_instances(InstanceIds=[self.i["instanceId"]])
         my_asg_name = parent_asg['AutoScalingInstances'][0]['AutoScalingGroupName']
@@ -245,7 +246,7 @@ class cluster_helper(object):
         kubeconfig = template.render(
           hostname = self.i['hostname'],
           private_ip = self.i['privateIp'],
-          provider_id = f"aws:///{ self.i['availabilityZone'] }/{ self.i['instanceId'] }",
+          provider_id = self.provider_id,
           role = self.mode,
           cluster_name = self.cluster,
           etcd_server_urls = self.get_etcd_client_urls(),
@@ -312,12 +313,16 @@ class cluster_helper(object):
         sleep(90)
         self.upload_kubeconfig()
         self.apply_manifests()
+    def write_sysconfig(self):
+        argstring = f'KUBELET_EXTRA_ARGSi+=" --provider-id={ self.provider_id }"'
+        f = open('EnvironmentFile=-/etc/sysconfig/kubelet', 'w')
+        f.write(argstring)
+        f.close()
     def join_node(self):
         join_command = self.get_join_token()
         if self.mode == 'master':
             join_command += " --control-plane"
         join_command += ' --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt'
-        join_command += '--config /tmp/kubeconfig.yaml'
         join = subprocess.check_call(join_command.split())
     def get_kubeclient(self):
         try:
@@ -400,6 +405,7 @@ class cluster_helper(object):
             if self.get_etcd_cluster_state == "existing":
                 self.add_etcd_member()
         elif self.mode in ["master", "worker"]:
+            self.write_sysconfig()
             self.create_client_certs(f"{self.mode}-client")
             fetchconfigs = self.get_kubeadm_config()
             if fetchconfigs:
