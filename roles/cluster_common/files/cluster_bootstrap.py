@@ -314,7 +314,7 @@ class cluster_helper(object):
         self.upload_kubeconfig()
         self.apply_manifests()
     def write_sysconfig(self):
-        argstring = f'KUBELET_EXTRA_ARGS+=" --provider-id={ self.provider_id }"'
+        argstring = f'KUBELET_EXTRA_ARGS=" --provider-id={ self.provider_id }"'
         f = open('/etc/sysconfig/kubelet', 'w')
         f.write(argstring)
         f.close()
