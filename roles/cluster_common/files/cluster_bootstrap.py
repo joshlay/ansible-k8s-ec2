@@ -317,6 +317,7 @@ class cluster_helper(object):
         if self.mode == 'master':
             join_command += " --control-plane"
         join_command += ' --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt'
+        join_command += '--config /tmp/kubeconfig.yaml'
         join = subprocess.check_call(join_command.split())
     def get_kubeclient(self):
         try:

@@ -68,3 +68,21 @@ dns:
   type: CoreDNS
 scheduler: {}
 ---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: JoinConfiguration
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: {{ hostname }}
+  {% if role == "master" -%}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+  {% else -%}
+  taints: []
+  {% endif -%}
+  kubeletExtraArgs:
+    cgroup-driver: "systemd"
+    cloud-provider: aws
+    provider-id: {{ provider_id }}
+    node-ip: {{ private_ip }}
+    node-labels: KubernetesCluster={{ cluster_name }}{%- if role == 'worker' -%},k8s.io/cluster-autoscaler/{{ cluster_name }}{%- endif -%}
