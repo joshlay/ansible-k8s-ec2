@@ -53,7 +53,7 @@
       version: "$Latest"
     termination_policies: OldestLaunchConfiguration
     metrics_collection: no
-    min_size: 0
+    min_size: 3
     max_size: 5
     desired_capacity: 0
     region: "{{ region }}"
