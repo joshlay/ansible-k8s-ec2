@@ -1,0 +1,19 @@
+HCLOUD_CONTEXT: "infrastructure"
+universal_image_version: "1"
+launch_configs:
+  standard:
+    image_id: 15759618
+    instance_type: cpx11
+    key_name: "{{ ssh_key.id }}"
+    volumes:
+      - device_name: /dev/vda
+        volume_size: 40
+        delete_on_termination: true
+        type: local
+network_id: 46037
+ssh_key:
+  id: 1215899
+  local_path: ~/.ssh/id_ecdsa
+interpreter: /usr/bin/python3
+cluster_name: cluster0
+region: nbg1
