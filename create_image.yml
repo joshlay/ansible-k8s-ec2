@@ -1,39 +1,44 @@
 ---
 - name: bring up node and image it
-  hosts: ec2-baseimage
+  hosts: localhost
   gather_facts: false
+  vars:
+    CLOUD_PROVIDER: "hetzner"
   vars_files:
-    - vars/main.yml
+    - "vars/{{ CLOUD_PROVIDER }}.yml"
   tasks:
-    - include_role: 
-        name: ec2_bootstrap
-    - include_role: 
-        name: cluster_common
-        apply:
-          tags: ['common']
-      tags: ['common']
+    - include_tasks: tasks/hetzner-apikey.yml
     - include_role:
-        name: etcd_autoscale/image_prep
-        apply:
-          tags: ['etcd']
-      tags: ['etcd']
-    - include_role:
-        name: kube_builder/image_prep
-        apply:
-          tags: ['kube_prep']
-      tags: ['kube_prep']
-    - include_role:
-        name: create_image
-        apply:
-          tags: ['image']
-      tags: ['image']
-    - name: destroy the instance
-      delegate_to: localhost
-      ec2_instance: 
-        instance_role: kube_master
-        state: absent
-        profile: "{{ aws_profile }}"
-        instance_ids: "{{ [ instance_id ] }}"
-        wait: no
-      register: instances
-
+        name: "cluster_network_prep/{{ CLOUD_PROVIDER }}"
+#    - include_role: 
+#        name: hetzner_bootstrap
+#    - include_role: 
+#        name: cluster_common
+#        apply:
+#          tags: ['common']
+#      tags: ['common']
+#    - include_role:
+#        name: etcd_autoscale/image_prep
+#        apply:
+#          tags: ['etcd']
+#      tags: ['etcd']
+#    - include_role:
+#        name: kube_builder/image_prep
+#        apply:
+#          tags: ['kube_prep']
+#      tags: ['kube_prep']
+#    - include_role:
+#        name: create_image
+#        apply:
+#          tags: ['image']
+#      tags: ['image']
+#    - name: destroy the instance
+#      delegate_to: localhost
+#      ec2_instance: 
+#        instance_role: kube_master
+#        state: absent
+#        profile: "{{ aws_profile }}"
+#        instance_ids: "{{ [ instance_id ] }}"
+#        wait: no
+#      register: instances
+#

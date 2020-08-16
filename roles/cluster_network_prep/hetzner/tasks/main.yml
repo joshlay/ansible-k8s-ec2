@@ -1,0 +1,15 @@
+---
+- name: create network
+  hcloud_network:
+    api_token: "{{ HCLOUD_API_KEY }}"
+    ip_range: "10.27.32.0/20"
+    name: "private-{{ cluster_name }}"
+    labels:
+      KubernetesCluster: "{{ cluster_name }}"
+      Usage: "staging"
+  register: network_results
+
+- set_fact:
+    hcloud_network: "{{ network_results['hcloud_network'] }}"
+
+- debug: var=hcloud_network
