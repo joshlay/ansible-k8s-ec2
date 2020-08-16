@@ -1,0 +1,7 @@
+---
+
+- name: prepare api setup
+  set_fact:
+    HCLOUD_API_KEY: "{{ lookup('file','~/.config/hcloud/cli.toml') | hetzner_token(context=HCLOUD_CONTEXT) }}"
+
+#- debug: var=API_KEY
